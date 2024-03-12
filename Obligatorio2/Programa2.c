@@ -31,9 +31,7 @@ int generate_random(int n, int m) {
 
     gsl_rng_free (r);
     fclose(file);
-    #endif
-   
-    #endif
+
     #elif RNG_TYPE == 1
     FILE *file = fopen("random_numbers.txt", "w");
     srand(time(0));
