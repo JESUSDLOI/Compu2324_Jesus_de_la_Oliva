@@ -13,6 +13,8 @@ int generate_random(int n, int m) {
     int i=0;
 
     #if RNG_TYPE == 0
+    // Code block for RNG_TYPE == 0
+    #endif
     #ifdef USE_GSL
     const gsl_rng_type * T;
     gsl_rng * r;
