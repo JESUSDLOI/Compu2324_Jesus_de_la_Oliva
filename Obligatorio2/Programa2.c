@@ -22,17 +22,16 @@ int generate_random(int n, int m) {
     T = gsl_rng_default;
     r = gsl_rng_alloc (T);
 
-    result = gsl_rng_uniform_int(r, n+1);
-    gsl_rng_free (r);
-        fopen("random_numbers.txt", "w", stdout);
-        do while (i<m, i++)
-        {
-            srand(time(0));
-            result = rand() % (n+1);
-            fprintf("random_numbers.txt", "%d\n", result);
+    fopen("random_numbers.txt", "w", stdout);
+    do {
+        result = gsl_rng_uniform_int(r, n+1);
+        fprintf(file, "%d\n", result);
+        i++;
+    } while (i < m);
 
-        }
-    fclose("random_numbers.txt");
+    gsl_rng_free (r);
+    fclose(file);
+    #endif
    
     #endif
     #elif RNG_TYPE == 1
