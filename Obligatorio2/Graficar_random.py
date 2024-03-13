@@ -15,4 +15,6 @@ keys, values = zip(*sorted_data)
 # Plotear
 plt.bar(keys, values, color='c', edgecolor='black')
 plt.title('Histograma de números aleatorios')
+plt.grid(True)
+plt.yticks(range(0, 10, 1))
 plt.show()
