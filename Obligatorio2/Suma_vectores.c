@@ -8,7 +8,7 @@ void suma_vectores(int *v1, int *v2, int *v3, int n){
     }
 }
 
-int main (int argc, char *argv[]) {
+int main () {
     int n = 10;
     int v1[n], v2[n], v3[n];
     int i;
