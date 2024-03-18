@@ -47,7 +47,8 @@ void generate_random(int n, int m) {
     #elif RNG_TYPE == 0
 
     int *r=NULL;
-
+    r = malloc(m * sizeof(int)); // Reservar memoria para el arreglo de números aleatorios
+    
     tau=gsl_rng_alloc(gsl_rng_taus);
     gsl_rng_set(tau,semilla);
 
