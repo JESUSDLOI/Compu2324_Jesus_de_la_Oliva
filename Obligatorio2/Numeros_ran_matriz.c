@@ -53,13 +53,15 @@ void generate_random(int n, int m) {
 
     //Generar un número aleatorio
     for(i=0;i<m;i++){
-        (*r)[i] =gsl_rng_uniform_int(tau,n);
+        r[i] =gsl_rng_uniform_int(tau,n);
     }
     free(r);
     gsl_rng_free(tau);
     
     FILE *file = fopen("random_numbers.txt", "w");
-    fprintf(file, "%lf ", r);
+    for (i = 0; i < m; i++)
+        fprintf(file, "%d ", r[i]);
+    
     fclose(file);
 
     #endif
