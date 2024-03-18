@@ -55,14 +55,15 @@ void generate_random(int n, int m) {
     for(i=0;i<m;i++){
         r[i] =gsl_rng_uniform_int(tau,n);
     }
-    free(r);
-    gsl_rng_free(tau);
-    
+
     FILE *file = fopen("random_numbers_joel.txt", "w");
     for (i = 0; i < m; i++)
         fprintf(file, "%d ", r[i]);
     
     fclose(file);
+
+    free(r);
+    gsl_rng_free(tau);
 
     #endif
 }
