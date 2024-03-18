@@ -58,7 +58,7 @@ void generate_random(int n, int m) {
     free(r);
     gsl_rng_free(tau);
     
-    FILE *file = fopen("random_numbers.txt", "w");
+    FILE *file = fopen("random_numbers_joel.txt", "w");
     for (i = 0; i < m; i++)
         fprintf(file, "%d ", r[i]);
     
