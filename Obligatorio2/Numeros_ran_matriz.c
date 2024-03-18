@@ -2,14 +2,20 @@
 #include <stdlib.h>
 #include <time.h>
 
-#ifdef USE_GSL
-#include <gsl/gsl_rng.h>
-#endif
+#include "gsl_rng.h"
 
-#define RNG_TYPE 1  // 0 for GSL, 1 for C rand
+// Para compilar en Joel gcc -o Programa Programa.c `gsl-config --cflags --libs`
+
+#define RNG_TYPE 0  // 0 for GSL, 1 for C rand
+
+gsl_rng *tau;
 
 void generate_random(int n, int m) {
     int i, j;
+    extern gsl_rng *tau;
+    int semilla=18237247; 
+    //Una vez en el programa tenemos que incializar el generador. Para eso le tenemos
+    //que pasar un número entero, de al menos 5 dígitos, que se usará de semilla
 
     #if RNG_TYPE == 1
     FILE *file = fopen("random_numbers.txt", "w");
@@ -39,7 +45,22 @@ void generate_random(int n, int m) {
    
 
     #elif RNG_TYPE == 0
-    continue;
+
+    int *r=NULL;
+
+    tau=gsl_rng_alloc(gsl_rng_taus);
+    gsl_rng_set(tau,semilla);
+
+    //Generar un número aleatorio
+    for(i=0;i<m;i++){
+        (*r)[i] =gsl_rng_uniform_int(tau,n);
+    }
+    free(r);
+    gsl_rng_free(tau);
+    
+    FILE *file = fopen("random_numbers.txt", "w");
+    fprintf(file, "%lf ", r);
+    fclose(file);
 
     #endif
 }

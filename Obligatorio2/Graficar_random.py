@@ -13,8 +13,9 @@ sorted_data = sorted(frequencies.items(), key=lambda x: x[1])
 keys, values = zip(*sorted_data)
 
 # Plotear
-plt.bar(keys, values, color='c', edgecolor='black')
+#plt.bar(keys, values, color='c', edgecolor='black')
+plt.bar(keys, values, color='c')
 plt.title('Histograma de números aleatorios')
 plt.grid(True)
-plt.yticks(range(0, 10, 1))
+plt.autoscale(tight=True)
 plt.show()
