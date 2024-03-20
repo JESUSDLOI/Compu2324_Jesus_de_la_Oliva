@@ -2,7 +2,7 @@ import numpy as np
 from numpy import random
 
 # Definir tamaño y valores posibles de los vectores
-n=1000000
+n=100000
 a=1
 b=100
 

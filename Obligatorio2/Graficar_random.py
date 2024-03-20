@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 from collections import Counter
 
 #Representar datos aleatorios del documento random_numbers.txt
-data = open('C:/Users/jesol/OneDrive/Escritorio/Compu/Compu2324_Jesus_de_la_Oliva/Obligatorio2/random_numbers.txt', 'r').read().split(' ')
+data = open('C:/Users/jesol/OneDrive/Escritorio/Compu/Compu2324_Jesus_de_la_Oliva/Obligatorio2/random_numbers_joel.txt', 'r').read().split(' ')
 # Calcular frecuencias
 frequencies = Counter(data)
 
