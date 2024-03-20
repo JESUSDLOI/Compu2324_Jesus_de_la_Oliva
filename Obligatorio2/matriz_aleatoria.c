@@ -9,9 +9,7 @@ void mtrz_aleatoria(int N) {
         matriz[i] = (int*)malloc(N * sizeof(int));
         for (j = 0; j < N; j++) {
             matriz[i][j] = rand() % N;
-            printf("%d ", matriz[i][j]);
         }
-        printf("\n");
     }
     for (i = 0; i < N; i++) {
         free(matriz[i]);
@@ -26,7 +24,7 @@ int main() {
 
     start_time = clock();
 
-    mtrz_aleatoria(10000);
+    mtrz_aleatoria(100000);
 
     end_time = clock();
     execution_time = ((double) (end_time - start_time)) / CLOCKS_PER_SEC;
