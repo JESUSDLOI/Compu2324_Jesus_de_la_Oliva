@@ -1,21 +1,19 @@
 import matplotlib.pyplot as plt
 from collections import Counter
 
-#Representar datos aleatorios del documento random_numbers.txt
-data = open('C:/Users/jesol/OneDrive/Escritorio/Compu/Compu2324_Jesus_de_la_Oliva/Obligatorio2/random_numbers_joel.txt', 'r').read().split(' ')
-# Calcular frecuencias
-frequencies = Counter(data)
 
-# Ordenar por frecuencias
-sorted_data = sorted(frequencies.items(), key=lambda x: x[1])
+# Read data from the file
+data = open('C:/Users/jesol/OneDrive/Escritorio/Compu/Compu2324_Jesus_de_la_Oliva/Obligatorio1/posiciones.txt', 'r').read().split('\n')
 
-# Separar en dos listas
-keys, values = zip(*sorted_data)
+# Split each line by comma and convert to float
+coordinates = [list(map(float, line.split(','))) for line in data if line]
 
-# Plotear
-#plt.bar(keys, values, color='c', edgecolor='black')
-plt.bar(keys, values, color='c')
-plt.title('Histograma de números aleatorios')
+# Separate into x and y coordinates
+x, y = zip(*coordinates)
+
+# Plot the data
+plt.scatter(x, y)
+plt.title('Scatter plot of coordinates')
 plt.grid(True)
 plt.autoscale(tight=True)
 plt.show()
