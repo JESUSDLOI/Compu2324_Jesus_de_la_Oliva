@@ -3,7 +3,7 @@ from collections import Counter
 
 
 # Read data from the file
-data = open('C:/Users/jesol/OneDrive/Escritorio/Compu/Compu2324_Jesus_de_la_Oliva/Obligatorio1/posiciones.txt', 'r').read().split('\n')
+data = open(r'C:\Users\jesol\OneDrive\Escritorio\Programacion\Programas\Compu2324\Obligatorio1\posiciones.txt', 'r').read().split('\n')
 
 # Split each line by comma and convert to float
 coordinates = [list(map(float, line.split(','))) for line in data if line]

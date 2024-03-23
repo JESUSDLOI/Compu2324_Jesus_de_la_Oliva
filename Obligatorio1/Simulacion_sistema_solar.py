@@ -2,23 +2,20 @@
 #Unidades del sistema internacional.
 
 import numpy as np
-import matplotlib.pyplot as plt
-from scipy.integrate import odeint
-
 
 #Establecemos los uncrementos del tiempo.
-h=0.01
+h=0.0001
 
 #Constante de gravitación universal.
 G = 6.674*10**(-11) #m^3/kg/s^2
 
-#Radios de los planetas m.
-r_mrcurio = np.array([4.6*10**11, 0])
-r_venus = np.array([1.074*10**11, 0])
+#Distancia al Sol de los planetas m.
+r_mrcurio = np.array([5.791*10**10, 0])
+r_venus = np.array([1.082*10**11, 0])
 r_tierra = np.array([1.496*10**11, 0])
 r_marte = np.array([2.279*10**11, 0])
-r_jupiter = np.array([7.785*10**11, 0])      
-r_saturno = np.array([1.429*10**12, 0])
+r_jupiter = np.array([7.786*10**11, 0])      
+r_saturno = np.array([1.433*10**12, 0])
 r_urano = np.array([2.871*10**12, 0])
 r_neptuno = np.array([4.495*10**12, 0])
 r_pluton = np.array([5.906*10**12, 0])
@@ -37,8 +34,8 @@ m_neptuno = 1.02*10**26
 m_pluton = 1.3*10**22
 masas = np.array([m_mercurio, m_venus, m_tierra, m_marte, m_jupiter, m_saturno, m_urano, m_neptuno, m_pluton])
 
-#Pedimos por consola el número de planetas con los que se ejcutará la simulación.
-n = int(input("Ingrese el número de planetas con los que se ejecutará la simulación: "))
+#Pedimos el número de planetas con los que se ejcutará la simulación.
+n = 4
 
 #Reescalamiento de las unidades de los datos.
 reescalado_r = [radios[i][0]/r_tierra[0] for i in range(n)]
@@ -48,28 +45,25 @@ m_rees = [ m/m_sol for m in masas]
 
 #Definimos resta de vectores.
 def resta_vectorial(v1, v2):
-    v3 = np.subtract(v1, v2)
+    v3 = v1 - v2
     return v3
 
 #Inicializamos la aceleración de cada planeta.
-a = np.zeros((n, 2))
 a_t = np.zeros((n, 2))
 
 
 #Definimos la función a(t) a partir de la suma de fuerazas que se ejercen sobre cada partícula i.
-def aceleracion_por_planeta(n, r_rees, m_rees, a, a_t):
+def aceleracion_por_planeta(n, r_rees, m_rees, a_t):
     for i in range(n):
         for j in range(n):
             if i != j:
-                a[i] = m_rees[j]*np.array(resta_vectorial(r_rees[i], r_rees[j]))/np.linalg.norm(resta_vectorial(r_rees[i], r_rees[j]))**3
-                a_t[i] = a_t[i] + a[i]    
-    return a_t
-
-print(aceleracion_por_planeta(n, r_rees, m_rees, a, a_t))
+                a_t[i] += m_rees[j]*np.array(resta_vectorial(r_rees[i], r_rees[j]))/np.linalg.norm(resta_vectorial(r_rees[i], r_rees[j]))**3  
+        a_t[i] += r_rees[i]/np.linalg.norm(r_rees[i][0])**3  
+    return -a_t
 
 #Vector de velocidades iniciales de los planetas m/s.
-v_mercurio = np.array([0, 4.7*10**4])
-v_venus = np.array([0, 3.5*10**4])
+v_mercurio = np.array([0, -4.7*10**4])
+v_venus = np.array([0, -3.5*10**4])
 v_tierra = np.array([0, 3*10**4])
 v_marte = np.array([0, 2.4*10**4])
 v_jupiter = np.array([0, 1.3*10**4])
@@ -80,7 +74,7 @@ v_pluton = np.array([0, 4.7*10**3])
 velocidades = np.array([v_mercurio, v_venus, v_tierra, v_marte, v_jupiter, v_saturno, v_urano, v_neptuno, v_pluton])
 
 #Reescalamiento de las unidades de los datos.
-reescalado_v = [velocidades[i][1]/t_rees for i in range(n)]
+reescalado_v = [velocidades[i][1]/v_tierra[1] for i in range(n)]
 v_rees = np.array([[0, v] for v in reescalado_v])   
 
 #Definimos la función w[i].
@@ -96,13 +90,13 @@ def r_th(n, r_rees_th, w_i, h):
     return r_rees_th
 
 #Definimos la función que nos da la acceleración en el tiempo t+h.
-def acel_i_th(n, r_rees_th, m_rees, a):
+def acel_i_th(n, r_rees_th, m_rees, a_i_th):
     for i in range(n):
         for j in range(n):
             if i != j:
-                a[i] = m_rees[j]*np.array(resta_vectorial(r_rees_th[i], r_rees_th[j]))/abs(resta_vectorial(r_rees_th[i],r_rees_th[j]))**3
-                a_i_th[i] = a_i_th[i] + a[i]    
-    return a_i_th 
+                 a_i_th[i] += m_rees[j]*np.array(resta_vectorial(r_rees_th[i], r_rees_th[j]))/np.linalg.norm(resta_vectorial(r_rees_th[i],r_rees_th[j]))**3    
+        a_i_th[i] += r_rees_th[i]/np.linalg.norm(r_rees_th[i])**3
+    return -a_i_th 
 
 
 #Definimos la función que nos da la nueva velocidad en el tiempo t+h.
@@ -113,28 +107,28 @@ def velocidad_th(w_i, n, v_th, a_i_th, h):
 
 
 #Realizamos el bucle para calcular las posiciones y velocidades de los planetas.
-a_i = aceleracion_por_planeta(n, r_rees, m_rees, a, a_t)
+a_i = aceleracion_por_planeta(n, r_rees, m_rees, a_t)
 r_rees_th = r_rees
 w_i = np.zeros((n, 2))
 a_i_th = np.zeros((n, 2))
 v_th = v_rees
 
 # Abrir tres archivos para guardar los datos de las posiciones, velocidades y aceleraciones
-file_posiciones = open("posiciones.txt", "w")
-file_velocidades = open("velocidades.txt", "w")
-file_aceleraciones = open("aceleraciones.txt", "w")
+file_posiciones = open("C:\\Users\\jesol\\OneDrive\\Escritorio\\Programacion\\Programas\\Compu2324\\Obligatorio1\\posiciones.txt", "w")
+file_velocidades = open("C:\\Users\\jesol\\OneDrive\\Escritorio\\Programacion\\Programas\\Compu2324\\Obligatorio1\\velocidades.txt", "w")
+file_aceleraciones = open("C:\\Users\\jesol\\OneDrive\\Escritorio\\Programacion\\Programas\\Compu2324\\Obligatorio1\\aceleraciones.txt", "w")
 
 # Realizamos el bucle para calcular las posiciones y velocidades de los planetas.
-for k in range(100000):
+for k in range(10000000):
 
-    # Guardar los datos en los archivos correspondientes
-    np.savetxt(file_posiciones, r_rees, delimiter=",")
-    np.savetxt(file_velocidades, v_rees, delimiter=",")
-    np.savetxt(file_aceleraciones, a_i, delimiter=",")
+    if k == 0 or k % 4 == 0:
+        np.savetxt(file_posiciones, r_rees, delimiter=",")
+        np.savetxt(file_velocidades, v_rees, delimiter=",")
+        np.savetxt(file_aceleraciones, a_i, delimiter=",")
 
     w_i = w_ih(n, v_rees, a_i, w_i, h)
     r_rees_th = r_th(n, r_rees, w_i, h)
-    a_i_th = acel_i_th(n, r_rees_th, m_rees, a)
+    a_i_th = acel_i_th(n, r_rees_th, m_rees, a_i)
     v_th = velocidad_th(w_i, n, v_rees, a_i_th, h)
     r_rees = r_rees_th
     v_rees = v_th
