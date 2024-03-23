@@ -4,10 +4,10 @@
 import numpy as np
 
 #Establecemos los uncrementos del tiempo.
-h=0.0001
+h=0.00001
 
 #Constante de gravitación universal.
-G = 6.674*10**(-11) #m^3/kg/s^2
+G = 6.674*10**(-11) 
 
 #Distancia al Sol de los planetas m.
 r_mrcurio = np.array([5.791*10**10, 0])
@@ -35,7 +35,7 @@ m_pluton = 1.3*10**22
 masas = np.array([m_mercurio, m_venus, m_tierra, m_marte, m_jupiter, m_saturno, m_urano, m_neptuno, m_pluton])
 
 #Pedimos el número de planetas con los que se ejcutará la simulación.
-n = 4
+n = 5
 
 #Reescalamiento de las unidades de los datos.
 reescalado_r = [radios[i][0]/r_tierra[0] for i in range(n)]
@@ -74,7 +74,7 @@ v_pluton = np.array([0, 4.7*10**3])
 velocidades = np.array([v_mercurio, v_venus, v_tierra, v_marte, v_jupiter, v_saturno, v_urano, v_neptuno, v_pluton])
 
 #Reescalamiento de las unidades de los datos.
-reescalado_v = [velocidades[i][1]/v_tierra[1] for i in range(n)]
+reescalado_v = [velocidades[i][1]/(v_tierra[1]*1.48) for i in range(n)]
 v_rees = np.array([[0, v] for v in reescalado_v])   
 
 #Definimos la función w[i].
@@ -106,7 +106,7 @@ def velocidad_th(w_i, n, v_th, a_i_th, h):
     return v_th
 
 
-#Realizamos el bucle para calcular las posiciones y velocidades de los planetas.
+#Inicializamos las variables que se utilizarán en el bucle.
 a_i = aceleracion_por_planeta(n, r_rees, m_rees, a_t)
 r_rees_th = r_rees
 w_i = np.zeros((n, 2))
@@ -121,7 +121,7 @@ file_aceleraciones = open("C:\\Users\\jesol\\OneDrive\\Escritorio\\Programacion\
 # Realizamos el bucle para calcular las posiciones y velocidades de los planetas.
 for k in range(10000000):
 
-    if k == 0 or k % 4 == 0:
+    if k == 0 or k % 50000 == 0:
         np.savetxt(file_posiciones, r_rees, delimiter=",")
         np.savetxt(file_velocidades, v_rees, delimiter=",")
         np.savetxt(file_aceleraciones, a_i, delimiter=",")
