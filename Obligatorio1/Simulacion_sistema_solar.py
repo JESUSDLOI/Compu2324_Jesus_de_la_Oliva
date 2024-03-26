@@ -4,7 +4,7 @@
 import numpy as np
 
 #Establecemos los uncrementos del tiempo.
-h=0.00001
+h=0.0001
 
 #Constante de gravitación universal.
 G = 6.674*10**(-11) 
@@ -35,7 +35,7 @@ m_pluton = 1.3*10**22
 masas = np.array([m_mercurio, m_venus, m_tierra, m_marte, m_jupiter, m_saturno, m_urano, m_neptuno, m_pluton])
 
 #Pedimos el número de planetas con los que se ejcutará la simulación.
-n = 5
+n = 4
 
 #Reescalamiento de las unidades de los datos.
 reescalado_r = [radios[i][0]/r_tierra[0] for i in range(n)]
@@ -119,9 +119,9 @@ file_velocidades = open("C:\\Users\\jesol\\OneDrive\\Escritorio\\Programacion\\P
 file_aceleraciones = open("C:\\Users\\jesol\\OneDrive\\Escritorio\\Programacion\\Programas\\Compu2324\\Obligatorio1\\aceleraciones.txt", "w")
 
 # Realizamos el bucle para calcular las posiciones y velocidades de los planetas.
-for k in range(10000000):
+for k in range(1000000):
 
-    if k == 0 or k % 50000 == 0:
+    if k == 0 or k % (n*1000) == 0:
         np.savetxt(file_posiciones, r_rees, delimiter=",")
         np.savetxt(file_velocidades, v_rees, delimiter=",")
         np.savetxt(file_aceleraciones, a_i, delimiter=",")
