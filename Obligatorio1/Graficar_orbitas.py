@@ -27,11 +27,11 @@ while k < len(x):
         k += 1
     
 # Leyenda
-labels = ['Mercurio', 'Venus', 'Tierra', 'Marte', 'Jupiter', 'Saturno', 'Urano', 'Neptuno', 'Pluton']
+labels = ['Mercurio', 'Venus', 'Tierra', 'Marte', 'Jupiter', 'Saturno', 'Urano', 'Neptuno']
 
 # Crear los parches
 patches = [plt.plot([],[], marker="o", ms=10, ls="", mec=None, color=colors[i], 
-            label="{:s}".format(labels[i]) )[0]  for i in range(len(labels)) ]
+            label="{:s}".format(labels[i]) )[0]  for i in range(n) ]
 
 # Añadir la leyenda
 plt.legend(handles=patches, loc='upper left', ncol=2, numpoints=1 )
