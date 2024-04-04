@@ -69,7 +69,7 @@ def aceleracion_por_planeta(n, r_rees, m_rees, a_t):
         for j in range(n):
             if i != j:
                 a_t[i] += m_rees[j]*np.array(r_rees[i] - r_rees[j])/np.linalg.norm(r_rees[i] - r_rees[j])**3  
-        a_t[i] += r_rees[i]/np.linalg.norm(r_rees[i][0])**3  
+        a_t[i] += r_rees[i]/np.linalg.norm(r_rees[i])**3  
     return -a_t
 
 #Definimos la función w[i].
