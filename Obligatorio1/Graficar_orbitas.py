@@ -2,10 +2,12 @@ import matplotlib.pyplot as plt
 from collections import Counter
 
 #Numero de planetas
-n = 4
+n = 8
 
-# Read data from the file
-data = open(r'C:\Users\jesol\OneDrive\Escritorio\Programacion\Programas\Compu2324\Obligatorio1\posiciones.txt', 'r').read().split('\n')
+# Leer los datos del archivo
+with open(r'C:\Users\jesol\OneDrive\Escritorio\Programacion\Programas\Compu2324\Obligatorio1\posiciones.dat', 'r') as f:
+    data = [line.strip() for line in f]
+
 
 # Split each line by comma and convert to float
 coordinates = [list(map(float, line.split(','))) for line in data if line]

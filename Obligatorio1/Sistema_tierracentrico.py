@@ -22,7 +22,7 @@ r_urano = np.array([2.871*10**12, 0])
 r_neptuno = np.array([4.495*10**12, 0])
 r_pluton = np.array([5.906*10**12, 0])
 r_sol = np.array([0, 0])
-radios = np.array([r_mrcurio, r_venus, r_sol, r_marte, r_jupiter, r_saturno, r_urano, r_neptuno, r_pluton])
+radios = np.array([r_mrcurio, r_venus, r_tierra, r_marte, r_jupiter, r_saturno, r_urano, r_neptuno, r_pluton])
 
 #Masas de los planetas Kg
 m_sol = 1.989*10**30
