@@ -40,8 +40,8 @@ E_cin = np.zeros((n, int(filas)))
 
 for k in range(filas):
     for i in range(n):
-            E_cin[i][k] = 0.5 * m_rees[i] * np.linalg.norm(v[k][i])**2
-       
+            E_cin[i][k] = (m_rees[i] * np.linalg.norm(v[k][i])**2 )/ 2
+
 
 #Calcular energía potencial.
 E_pot = np.zeros((n, int(filas)))
@@ -51,8 +51,8 @@ for k in range(len(coordenadas)):
     for i in range(n):
         for j in range(n):
             if i != j:
-                E_pot[i][k] += (-m_rees[i]*m_rees[j])/(np.linalg.norm(np.array(coordenadas[k][i])-np.array(coordenadas[k][j]))*2)
-        E_pot[i][k] += (-m_rees[i])/(np.linalg.norm(np.array(coordenadas[i]))*2)
+                E_pot[i][k] += (-m_rees[i]*m_rees[j])/(np.linalg.norm(np.array(coordenadas[k][i])-np.array(coordenadas[k][j])))
+        E_pot[i][k] += (-m_rees[i])/(np.linalg.norm(np.array(coordenadas[i])))
                 
 # Inicializar E_planeta array
 E_planeta = np.zeros((n, int(filas)))
@@ -65,7 +65,14 @@ for i in range(n):
 # Graficar la energía cinética            
 labels = ['Mercurio', 'Venus', 'Tierra', 'Marte', 'Jupiter', 'Saturno', 'Urano', 'Neptuno']
 
+# Inicializar excentricidad array
+excentricidad = np.zeros(n)
 
+# Calcular la excentricidad
+for i in range(n):
+    excentricidad[i] = np.sqrt(1 + (2*E_planeta[i][0]*(m_rees[i]*np.linalg.norm(coordenadas[0][i])**3*np.linalg.norm(v[0][i]))**2)/(m_rees[i]**3))
+
+print(excentricidad)
 
 
 for i in range(n):
@@ -76,7 +83,8 @@ for i in range(n):
     plt.plot(E_pot[i], label='Energía potencial ' + labels[i])
     plt.plot(E_planeta[i], label='Energía total ' + labels[i])
 
-#plt.plot(E_total[0], label='Energía total ' )
+
+
 
 # Añadir título y etiquetas
 plt.xlabel('Index')

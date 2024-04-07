@@ -51,12 +51,12 @@ file_in = "posiciones.dat" # Nombre del fichero de datos
 file_out = "planetas" # Nombre del fichero de salida (sin extensión)
 
 # Límites de los ejes X e Y
-x_min = -10
-x_max = 10
-y_min = -10 
-y_max = 10
+x_min = -40
+x_max = 40
+y_min = -40 
+y_max = 40
 
-interval = 50 # Tiempo entre fotogramas en milisegundos
+interval = 1 # Tiempo entre fotogramas en milisegundos
 show_trail = True # Muestra la "estela" del planeta
 trail_width = 1 # Ancho de la estela
 save_to_file = False # False: muestra la animación por pantalla,
