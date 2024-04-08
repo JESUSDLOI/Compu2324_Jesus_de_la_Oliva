@@ -58,7 +58,7 @@ v_saturno = np.array([0, 9.6*10**3])
 v_urano = np.array([0, 6.8*10**3])
 v_neptuno = np.array([0, 5.4*10**3])
 v_pluton = np.array([0, 4.7*10**3])
-velocidades = np.array([v_mercurio, v_venus, v_tierra, v_marte, v_jupiter, v_saturno, v_urano, v_neptuno, v_pluton])
+velocidades = np.array([v_sol, v_mercurio, v_venus, v_tierra, v_marte, v_jupiter, v_saturno, v_urano, v_neptuno, v_pluton])
 
 #Reescalamiento de las unidades de los datos.
 reescalado_v = [velocidades[i][1]*np.sqrt(r_tierra[0]/(G*m_sol)/2) for i in range(n)]
