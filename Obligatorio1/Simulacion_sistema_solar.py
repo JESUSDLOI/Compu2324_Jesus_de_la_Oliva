@@ -3,7 +3,6 @@
 
 import numpy as np
 import time
-from numba import jit
 
 #Establecemos el tiempo inicial.
 
@@ -80,14 +79,12 @@ def aceleracion_por_planeta(n, r_rees, m_rees, a_t):
     return -a_t
 
 #Definimos la función w[i].
-@jit
 def w_ih(n, v_rees, a_i, w_i, h):
     for i in range(n):
         w_i[i] = v_rees[i] + a_i[i]*(h/2)
     return w_i
 
 #Definimos r(t+h) que nos da la nueva posición.
-@jit
 def r_th(n, r_rees_th, w_i, h):
     for i in range(n):
         r_rees_th[i] = r_rees_th[i] + w_i[i]*h
@@ -103,7 +100,6 @@ def acel_i_th(n, r_rees_th, m_rees, a_i_th):
 
 
 #Definimos la función que nos da la nueva velocidad en el tiempo t+h.
-@jit
 def velocidad_th(w_i, n, v_th, a_i_th, h):
     for i in range(n):
         v_th[i]= w_i[i] + a_i_th[i]*(h/2)
