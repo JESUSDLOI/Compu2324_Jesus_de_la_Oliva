@@ -13,7 +13,7 @@ t0 = time.time()
 h=0.0001
 
 #Número de iteraciones.
-iteraciones = 10000
+iteraciones = 1000000
 
 #Pedimos el número de planetas con los que se ejcutará la simulación.
 n = 6
@@ -49,8 +49,8 @@ masas = np.array([m_sol, m_mercurio, m_venus, m_tierra, m_marte, m_jupiter, m_sa
 
 #Vector de velocidades iniciales de los planetas m/s.
 v_sol = np.array([0, 0])
-v_mercurio = np.array([0, -4.7*10**4])
-v_venus = np.array([0, -3.5*10**4])
+v_mercurio = np.array([0, 4.7*10**4])
+v_venus = np.array([0, 3.5*10**4])
 v_tierra = np.array([0, 3*10**4])
 v_marte = np.array([0, 2.4*10**4])
 v_jupiter = np.array([0, 1.3*10**4])
@@ -72,7 +72,6 @@ r_rees = np.array([[r, 0] for r in reescalado_r])
 m_rees = [ m/m_sol for m in masas]
 
 #Definimos la función a(t) a partir de la suma de fuerazas que se ejercen sobre cada partícula i.
-@jit
 def aceleracion_por_planeta(n, r_rees, m_rees, a_t):
     for i in range(n):
         for j in range(n):
@@ -95,7 +94,6 @@ def r_th(n, r_rees_th, w_i, h):
     return r_rees_th
 
 #Definimos la función que nos da la acceleración en el tiempo t+h.
-@jit
 def acel_i_th(n, r_rees_th, m_rees, a_i_th):
     for i in range(n):
         for j in range(n):
@@ -119,6 +117,7 @@ r_rees_th = r_rees
 w_i = np.zeros((n, 2))
 a_i_th = np.zeros((n, 2))
 v_th = v_rees
+periodo = np.zeros(n)
 
 # Abrir tres archivos para guardar los datos de las posiciones, velocidades y aceleraciones
 file_posiciones = open('posiciones.dat', "w")
@@ -143,7 +142,16 @@ for k in range(iteraciones):
     r_rees = r_rees_th
     v_rees = v_th
     a_i = a_i_th
+    
+    #Calcular periodo de las órbitas.
+    for i in range(n):
+        if r_rees[i][0] > 0 and r_rees[i][1] < 0 and periodo[i] == 0:
+            periodo[i] += k
+            break
 
+for i in range(n):
+    print("El periodo de la órbita de ", i, " es: ", periodo[i]*365.2425/periodo[3], " dias terrestres.")
+    
 # Cerrar los archivos
 file_posiciones.close()
 file_velocidades.close()

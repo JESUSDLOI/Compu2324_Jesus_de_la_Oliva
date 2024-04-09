@@ -18,7 +18,7 @@ masas = np.array([m_sol, m_mercurio, m_venus, m_tierra, m_marte, m_jupiter, m_sa
 m_rees = [ m/m_sol for m in masas]
 
 #Numero de planetas
-n = 6
+n = 7
 
 # Leer las velocidades de un archivo de texto
 with open('velocidades.dat', 'r') as f:
@@ -50,17 +50,16 @@ for k in range(len(coordenadas)):
         for j in range(n):
             if i != j:
                 E_pot[i][k] += (-m_rees[i]*m_rees[j])/(np.linalg.norm(np.array(coordenadas[k][i])-np.array(coordenadas[k][j])))
-        #E_pot[i][k] += (-m_rees[i])/(np.linalg.norm(np.array(coordenadas[i])))
                 
 # Inicializar E_planeta array
 E_planeta = np.zeros((n, int(filas)))
 # Inicializar E_total array
-E_total = np.zeros((1, int(filas)))
+E_total = np.zeros((int(filas)))
 
 for i in range(n):
     for j in range(int(filas)):
         E_planeta[i][j] = E_cin[i][j] + E_pot[i][j]
-        E_total[0][j] = E_planeta[i][j]
+        E_total[j] += E_planeta[i][j]
 
 
 # Graficar la energía cinética            
@@ -74,7 +73,7 @@ for i in range(n):
     plt.plot(E_cin[i], label='Energía cinética ' + labels[i])
     plt.plot(E_pot[i], label='Energía potencial ' + labels[i])
     plt.plot(E_planeta[i], label='Energía total ' + labels[i])
-    plt.plot(E_total[0], label='Energía total')
+    plt.plot(E_total, label='Energía total')
 
 
 # Añadir título y etiquetas

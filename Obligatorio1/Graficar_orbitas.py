@@ -2,10 +2,10 @@ import matplotlib.pyplot as plt
 from collections import Counter
 
 #Numero de planetas
-n = 8
+n = 7
 
 # Leer los datos del archivo
-with open(r'C:\Users\jesol\OneDrive\Escritorio\Programacion\Programas\Compu2324\Obligatorio1\posiciones.dat', 'r') as f:
+with open('posiciones.dat', 'r') as f:
     data = [line.strip() for line in f]
 
 
