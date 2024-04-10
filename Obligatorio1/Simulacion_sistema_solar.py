@@ -12,10 +12,10 @@ t0 = time.time()
 h=0.0001
 
 #Número de iteraciones.
-iteraciones = 500000
+iteraciones = 50000
 
 #Pedimos el número de planetas con los que se ejcutará la simulación.
-n = 6
+n = 4
 
 #Constante de gravitación universal.
 G = 6.674*10**(-11) 
@@ -149,7 +149,7 @@ for k in range(iteraciones):
 labels = ['Sol', 'Mercurio', 'Venus', 'Tierra', 'Marte', 'Jupiter', 'Saturno', 'Urano', 'Neptuno']
 
 for i in range(n):
-    print("El periodo de la órbita de ", labels[i], " es: ", periodo[i]*h*58.1, " dias terrestres.")
+    print("El periodo de la órbita de ", labels[i], " es: ", periodo[i]/periodo[3]*365.25, " dias terrestres.")
     
 # Cerrar los archivos
 file_posiciones.close()
