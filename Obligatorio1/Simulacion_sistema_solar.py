@@ -15,18 +15,18 @@ h=0.0001
 iteraciones = 1000000
 
 #Pedimos el número de planetas con los que se ejcutará la simulación.
-n = 6
+n = 9
 
 #Constante de gravitación universal.
 G = 6.674*10**(-11) 
 
 #Distancia al Sol de los planetas m.
-r_sol = np.array([0, 0])
+r_sol = np.array([5*10**8, 0])
 r_mrcurio = np.array([5.791*10**10, 0])
 r_venus = np.array([1.082*10**11, 0])
 r_tierra = np.array([1.496*10**11, 0])
 r_marte = np.array([2.279*10**11, 0])
-r_jupiter = np.array([7.786*10**11, 0])      
+r_jupiter = np.array([-7.786*10**11, 0])      
 r_saturno = np.array([1.433*10**12, 0])
 r_urano = np.array([2.871*10**12, 0])
 r_neptuno = np.array([4.495*10**12, 0])
@@ -37,7 +37,7 @@ radios = np.array([r_sol, r_mrcurio, r_venus, r_tierra, r_marte, r_jupiter, r_sa
 m_sol = 1.989*10**30
 m_mercurio = 3.3*10**23
 m_venus = 4.87*10**24
-m_tierra = 5.97*10**24
+m_tierra = 5.98*10**24
 m_marte = 6.42*10**23
 m_jupiter = 1.898*10**27
 m_saturno = 5.68*10**26
@@ -47,12 +47,12 @@ m_pluton = 1.3*10**22
 masas = np.array([m_sol, m_mercurio, m_venus, m_tierra, m_marte, m_jupiter, m_saturno, m_urano, m_neptuno, m_pluton])
 
 #Vector de velocidades iniciales de los planetas m/s.
-v_sol = np.array([0, 0])
+v_sol = np.array([0, 10])
 v_mercurio = np.array([0, 4.7*10**4])
 v_venus = np.array([0, 3.5*10**4])
 v_tierra = np.array([0, 3*10**4])
 v_marte = np.array([0, 2.4*10**4])
-v_jupiter = np.array([0, 1.3*10**4])
+v_jupiter = np.array([0, -1.3*10**4])
 v_saturno = np.array([0, 9.6*10**3])
 v_urano = np.array([0, 6.8*10**3])
 v_neptuno = np.array([0, 5.4*10**3])
@@ -140,13 +140,15 @@ for k in range(iteraciones):
     a_i = a_i_th
     
     #Calcular periodo de las órbitas.
-    for i in range(n):
+    for i in range(n):     
         if r_rees[i][0] > 0 and r_rees[i][1] < 0 and periodo[i] == 0:
             periodo[i] += k
             break
 
+labels = ['Sol', 'Mercurio', 'Venus', 'Tierra', 'Marte', 'Jupiter', 'Saturno', 'Urano', 'Neptuno']
+
 for i in range(n):
-    print("El periodo de la órbita de ", i, " es: ", periodo[i]*365.2425/periodo[3], " dias terrestres.")
+    print("El periodo de la órbita de ", labels[i], " es: ", periodo[i]*h*58.1, " dias terrestres.")
     
 # Cerrar los archivos
 file_posiciones.close()

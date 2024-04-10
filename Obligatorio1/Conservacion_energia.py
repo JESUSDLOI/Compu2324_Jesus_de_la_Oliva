@@ -18,7 +18,7 @@ masas = np.array([m_sol, m_mercurio, m_venus, m_tierra, m_marte, m_jupiter, m_sa
 m_rees = [ m/m_sol for m in masas]
 
 #Numero de planetas
-n = 7
+n = 9
 
 # Leer las velocidades de un archivo de texto
 with open('velocidades.dat', 'r') as f:

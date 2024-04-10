@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 from collections import Counter
 
 #Numero de planetas
-n = 7
+n = 9
 
 # Leer los datos del archivo
 with open('posiciones.dat', 'r') as f:
@@ -19,7 +19,7 @@ x, y = zip(*coordinates)
 filas = len(x)
 
 
-colors = ['b', 'g', 'r', 'c', 'm', 'y', 'k', 'w']
+colors = ['b', 'g', 'r', 'c', 'm', 'y', 'k', 'w', 'orange']
 
 k = 0
 
@@ -29,7 +29,7 @@ while k < len(x):
         k += 1
     
 # Leyenda
-labels = ['Mercurio', 'Venus', 'Tierra', 'Marte', 'Jupiter', 'Saturno', 'Urano', 'Neptuno']
+labels = ['Sol', 'Mercurio', 'Venus', 'Tierra', 'Marte', 'Jupiter', 'Saturno', 'Urano', 'Neptuno']
 
 # Crear los parches
 patches = [plt.plot([],[], marker="o", ms=10, ls="", mec=None, color=colors[i], 
