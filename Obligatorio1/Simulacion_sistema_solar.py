@@ -3,6 +3,7 @@
 
 import numpy as np
 import time
+from numba import jit
 
 #Establecemos el tiempo inicial.
 
@@ -12,7 +13,7 @@ t0 = time.time()
 h=0.0001
 
 #Número de iteraciones.
-iteraciones = 50000
+iteraciones = 100000
 
 #Pedimos el número de planetas con los que se ejcutará la simulación.
 n = 4
@@ -69,40 +70,49 @@ reescalado_r = [radios[i][0]/r_tierra[0] for i in range(n)]
 r_rees = np.array([[r, 0] for r in reescalado_r])
 
 #Reescalamos las masas.
-m_rees = [ m/m_sol for m in masas]
+m_rees = np.zeros(n)
+for i in range(n):
+    m_rees[i] = masas[i]/m_sol 
 
 #Definimos la función a(t) a partir de la suma de fuerazas que se ejercen sobre cada partícula i.
+@jit(nopython=True)
 def aceleracion_por_planeta(n, r_rees, m_rees, a_t):
     for i in range(n):
         for j in range(n):
             if i != j:
-                distancia = r_rees[i] - r_rees[j]
-                a_t[i] += m_rees[j]*np.array(distancia)/(np.linalg.norm(distancia))**3  
+                distancia = (r_rees[i] - r_rees[j])
+                norma = np.linalg.norm(distancia)
+                a_t[i] += m_rees[j]*distancia/(norma)**3  
     return -a_t
 
 #Definimos la función w[i].
+@jit(nopython=True)
 def w_ih(n, v_rees, a_i, w_i, h):
     for i in range(n):
         w_i[i] = v_rees[i] + a_i[i]*(h/2)
     return w_i
 
 #Definimos r(t+h) que nos da la nueva posición.
+@jit(nopython=True)
 def r_th(n, r_rees_th, w_i, h):
     for i in range(n):
         r_rees_th[i] = r_rees_th[i] + w_i[i]*h
     return r_rees_th
 
 #Definimos la función que nos da la acceleración en el tiempo t+h.
+@jit(nopython=True)
 def acel_i_th(n, r_rees_th, m_rees, a_i_th):
     for i in range(n):
         for j in range(n):
             if i != j:
-                 distancia = r_rees_th[i] - r_rees_th[j]
-                 a_i_th[i] += m_rees[j]*np.array(distancia)/(np.linalg.norm(distancia))**3    
+                 distancia = (r_rees_th[i] - r_rees_th[j])
+                 norma = np.linalg.norm(distancia)
+                 a_i_th[i] += m_rees[j]*distancia/(norma)**3    
     return -a_i_th 
 
 
 #Definimos la función que nos da la nueva velocidad en el tiempo t+h.
+@jit(nopython=True)
 def velocidad_th(w_i, n, v_th, a_i_th, h):
     for i in range(n):
         v_th[i]= w_i[i] + a_i_th[i]*(h/2)
@@ -122,31 +132,33 @@ file_velocidades = open('velocidades.dat', "w")
 file_aceleraciones = open('aceleraciones.dat', "w")
 
 # Realizamos el bucle para calcular las posiciones y velocidades de los planetas.
-for k in range(iteraciones):
 
-    if k == 0 or k % (n*100) == 0:
-        np.savetxt(file_posiciones, r_rees, delimiter=",")
-        np.savetxt(file_velocidades, v_rees, delimiter=",")
-        np.savetxt(file_aceleraciones, a_i, delimiter=",")
-        file_posiciones.write("\n")
-        file_velocidades.write("\n")
-        file_aceleraciones.write("\n")
-
-    w_i = w_ih(n, v_rees, a_i, w_i, h)
-    r_rees_th = r_th(n, r_rees, w_i, h)
-    a_i_th = acel_i_th(n, r_rees_th, m_rees, a_i)
-    v_th = velocidad_th(w_i, n, v_rees, a_i_th, h)
-    r_rees = r_rees_th
-    v_rees = v_th
-    a_i = a_i_th
+def simulacion(n, r_rees, v_rees, a_i, w_i, h, iteraciones):
     
-    #Calcular periodo de las órbitas.
-    for i in range(n):     
-        if r_rees[i][1] < 0 and periodo[i] == 0:
-            periodo[i] += k*2
-            
+    for k in range(iteraciones):
+
+        if k == 0 or k % (n*100) == 0:
+            np.savetxt(file_posiciones, r_rees, delimiter=",")
+            np.savetxt(file_velocidades, v_rees, delimiter=",")
+            file_posiciones.write("\n")
+            file_velocidades.write("\n")
+
+        w_i = w_ih(n, v_rees, a_i, w_i, h)
+        r_rees_th = r_th(n, r_rees, w_i, h)
+        a_i_th = acel_i_th(n, r_rees_th, m_rees, a_i)
+        v_th = velocidad_th(w_i, n, v_rees, a_i_th, h)
+        r_rees = r_rees_th
+        v_rees = v_th
+        a_i = a_i_th
+        
+        #Calcular periodo de las órbitas.
+        for i in range(n):     
+            if r_rees[i][1] < 0 and periodo[i] == 0:
+                periodo[i] += k*2
 
 labels = ['Sol', 'Mercurio', 'Venus', 'Tierra', 'Marte', 'Jupiter', 'Saturno', 'Urano', 'Neptuno']
+
+simulacion(n, r_rees, v_rees, a_i, w_i, h, iteraciones)
 
 for i in range(n):
     print("El periodo de la órbita de ", labels[i], " es: ", periodo[i]/periodo[3]*365.25, " dias terrestres.")
