@@ -156,9 +156,10 @@ def simulacion(n, r_rees, v_rees, a_i, w_i, h, iteraciones):
             if r_rees[i][1] < 0 and periodo[i] == 0:
                 periodo[i] += k*2
 
-labels = ['Sol', 'Mercurio', 'Venus', 'Tierra', 'Marte', 'Jupiter', 'Saturno', 'Urano', 'Neptuno']
-
+#Ejecutamos la simulación.
 simulacion(n, r_rees, v_rees, a_i, w_i, h, iteraciones)
+
+labels = ['Sol', 'Mercurio', 'Venus', 'Tierra', 'Marte', 'Jupiter', 'Saturno', 'Urano', 'Neptuno']
 
 for i in range(n):
     print("El periodo de la órbita de ", labels[i], " es: ", periodo[i]/periodo[3]*365.25, " dias terrestres.")
