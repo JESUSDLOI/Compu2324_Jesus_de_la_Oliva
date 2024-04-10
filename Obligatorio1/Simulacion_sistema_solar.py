@@ -9,10 +9,10 @@ import time
 t0 = time.time()
 
 #Establecemos los uncrementos del tiempo.
-h=0.0001
+h=0.001
 
 #Número de iteraciones.
-iteraciones = 300000
+iteraciones = 500000
 
 #Pedimos el número de planetas con los que se ejcutará la simulación.
 n = 6
@@ -95,7 +95,7 @@ def acel_i_th(n, r_rees_th, m_rees, a_i_th):
     for i in range(n):
         for j in range(n):
             if i != j:
-                 a_i_th[i] += m_rees[j]*np.array(r_rees[i] - r_rees[j])/np.linalg.norm(r_rees[i] - r_rees[j])**3    
+                 a_i_th[i] += m_rees[j]*np.array(r_rees_th[i] - r_rees_th[j])/np.linalg.norm(r_rees_th[i] - r_rees_th[j])**3    
     return -a_i_th 
 
 
@@ -148,7 +148,7 @@ for k in range(iteraciones):
 labels = ['Sol', 'Mercurio', 'Venus', 'Tierra', 'Marte', 'Jupiter', 'Saturno', 'Urano', 'Neptuno']
 
 for i in range(n):
-    print("El periodo de la órbita de ", labels[i], " es: ", periodo[i]*h*58.1, " dias terrestres.")
+    print("El periodo de la órbita de ", labels[i], " es: ", periodo[i]/190, " dias terrestres.")
     
 # Cerrar los archivos
 file_posiciones.close()
