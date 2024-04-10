@@ -18,7 +18,7 @@ masas = np.array([m_sol, m_mercurio, m_venus, m_tierra, m_marte, m_jupiter, m_sa
 m_rees = [ m/m_sol for m in masas]
 
 #Numero de planetas
-n = 9
+n = 6
 
 # Leer las velocidades de un archivo de texto
 with open('velocidades.dat', 'r') as f:
@@ -35,11 +35,9 @@ filas = len(v)
 # Calcular la energía cinética.
 E_cin = np.zeros((n, int(filas)))
 
-
 for k in range(filas):
     for i in range(n):
             E_cin[i][k] = (m_rees[i] * np.linalg.norm(v[k][i])**2 )/ 2
-
 
 #Calcular energía potencial.
 E_pot = np.zeros((n, int(filas)))

@@ -12,21 +12,21 @@ t0 = time.time()
 h=0.0001
 
 #Número de iteraciones.
-iteraciones = 1000000
+iteraciones = 300000
 
 #Pedimos el número de planetas con los que se ejcutará la simulación.
-n = 9
+n = 6
 
 #Constante de gravitación universal.
 G = 6.674*10**(-11) 
 
 #Distancia al Sol de los planetas m.
-r_sol = np.array([5*10**8, 0])
+r_sol = np.array([-5*10**8, 0])
 r_mrcurio = np.array([5.791*10**10, 0])
 r_venus = np.array([1.082*10**11, 0])
 r_tierra = np.array([1.496*10**11, 0])
 r_marte = np.array([2.279*10**11, 0])
-r_jupiter = np.array([-7.786*10**11, 0])      
+r_jupiter = np.array([7.786*10**11, 0])      
 r_saturno = np.array([1.433*10**12, 0])
 r_urano = np.array([2.871*10**12, 0])
 r_neptuno = np.array([4.495*10**12, 0])
@@ -47,12 +47,12 @@ m_pluton = 1.3*10**22
 masas = np.array([m_sol, m_mercurio, m_venus, m_tierra, m_marte, m_jupiter, m_saturno, m_urano, m_neptuno, m_pluton])
 
 #Vector de velocidades iniciales de los planetas m/s.
-v_sol = np.array([0, 10])
+v_sol = np.array([0, -11.3])
 v_mercurio = np.array([0, 4.7*10**4])
 v_venus = np.array([0, 3.5*10**4])
 v_tierra = np.array([0, 3*10**4])
 v_marte = np.array([0, 2.4*10**4])
-v_jupiter = np.array([0, -1.3*10**4])
+v_jupiter = np.array([0, 1.3*10**4])
 v_saturno = np.array([0, 9.6*10**3])
 v_urano = np.array([0, 6.8*10**3])
 v_neptuno = np.array([0, 5.4*10**3])
@@ -143,7 +143,7 @@ for k in range(iteraciones):
     for i in range(n):     
         if r_rees[i][0] > 0 and r_rees[i][1] < 0 and periodo[i] == 0:
             periodo[i] += k
-            break
+            
 
 labels = ['Sol', 'Mercurio', 'Venus', 'Tierra', 'Marte', 'Jupiter', 'Saturno', 'Urano', 'Neptuno']
 

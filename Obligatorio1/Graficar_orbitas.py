@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 from collections import Counter
 
 #Numero de planetas
-n = 9
+n = 6
 
 # Leer los datos del archivo
 with open('posiciones.dat', 'r') as f:
