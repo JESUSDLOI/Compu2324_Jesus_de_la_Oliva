@@ -9,7 +9,7 @@ import time
 t0 = time.time()
 
 #Establecemos los uncrementos del tiempo.
-h=0.001
+h=0.0001
 
 #Número de iteraciones.
 iteraciones = 500000
@@ -21,7 +21,7 @@ n = 6
 G = 6.674*10**(-11) 
 
 #Distancia al Sol de los planetas m.
-r_sol = np.array([-5*10**8, 0])
+r_sol = np.array([-5*10**7, 0])
 r_mrcurio = np.array([5.791*10**10, 0])
 r_venus = np.array([1.082*10**11, 0])
 r_tierra = np.array([1.496*10**11, 0])
@@ -47,7 +47,7 @@ m_pluton = 1.3*10**22
 masas = np.array([m_sol, m_mercurio, m_venus, m_tierra, m_marte, m_jupiter, m_saturno, m_urano, m_neptuno, m_pluton])
 
 #Vector de velocidades iniciales de los planetas m/s.
-v_sol = np.array([0, -11.3])
+v_sol = np.array([0, -5])
 v_mercurio = np.array([0, 4.7*10**4])
 v_venus = np.array([0, 3.5*10**4])
 v_tierra = np.array([0, 3*10**4])
@@ -60,8 +60,9 @@ v_pluton = np.array([0, 4.7*10**3])
 velocidades = np.array([v_sol, v_mercurio, v_venus, v_tierra, v_marte, v_jupiter, v_saturno, v_urano, v_neptuno, v_pluton])
 
 #Reescalamiento de las unidades de los datos.
-reescalado_v = [velocidades[i][1]*np.sqrt(r_tierra[0]/(G*m_sol)/2) for i in range(n)]
-v_rees = np.array([[0, v] for v in reescalado_v])   
+v_rees = np.zeros((n, 2))
+for i in range(n):
+    v_rees[i][1]  = velocidades[i][1]*np.sqrt(r_tierra[0]/(G*m_sol)/2)
 
 #Posiciones reescaladas.
 reescalado_r = [radios[i][0]/r_tierra[0] for i in range(n)]
@@ -75,7 +76,8 @@ def aceleracion_por_planeta(n, r_rees, m_rees, a_t):
     for i in range(n):
         for j in range(n):
             if i != j:
-                a_t[i] += m_rees[j]*np.array(r_rees[i] - r_rees[j])/np.linalg.norm(r_rees[i] - r_rees[j])**3  
+                distancia = r_rees[i] - r_rees[j]
+                a_t[i] += m_rees[j]*np.array(distancia)/(np.linalg.norm(distancia))**3  
     return -a_t
 
 #Definimos la función w[i].
@@ -95,7 +97,8 @@ def acel_i_th(n, r_rees_th, m_rees, a_i_th):
     for i in range(n):
         for j in range(n):
             if i != j:
-                 a_i_th[i] += m_rees[j]*np.array(r_rees_th[i] - r_rees_th[j])/np.linalg.norm(r_rees_th[i] - r_rees_th[j])**3    
+                 distancia = r_rees_th[i] - r_rees_th[j]
+                 a_i_th[i] += m_rees[j]*np.array(distancia)/(np.linalg.norm(distancia))**3    
     return -a_i_th 
 
 
@@ -109,10 +112,8 @@ def velocidad_th(w_i, n, v_th, a_i_th, h):
 #Inicializamos las variables que se utilizarán en el bucle.
 a_t = np.zeros((n, 2))
 a_i = aceleracion_por_planeta(n, r_rees, m_rees, a_t)
-r_rees_th = r_rees
 w_i = np.zeros((n, 2))
 a_i_th = np.zeros((n, 2))
-v_th = v_rees
 periodo = np.zeros(n)
 
 # Abrir tres archivos para guardar los datos de las posiciones, velocidades y aceleraciones
@@ -141,14 +142,14 @@ for k in range(iteraciones):
     
     #Calcular periodo de las órbitas.
     for i in range(n):     
-        if r_rees[i][0] > 0 and r_rees[i][1] < 0 and periodo[i] == 0:
-            periodo[i] += k
+        if r_rees[i][1] < 0 and periodo[i] == 0:
+            periodo[i] += k*2
             
 
 labels = ['Sol', 'Mercurio', 'Venus', 'Tierra', 'Marte', 'Jupiter', 'Saturno', 'Urano', 'Neptuno']
 
 for i in range(n):
-    print("El periodo de la órbita de ", labels[i], " es: ", periodo[i]/190, " dias terrestres.")
+    print("El periodo de la órbita de ", labels[i], " es: ", periodo[i]*h*58.1, " dias terrestres.")
     
 # Cerrar los archivos
 file_posiciones.close()
