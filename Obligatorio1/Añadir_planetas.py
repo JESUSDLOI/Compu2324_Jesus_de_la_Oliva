@@ -5,15 +5,11 @@ import numpy as np
 import time
 from numba import jit
 
-#Establecemos el tiempo inicial.
-
-t0 = time.time()
-
 #Establecemos los uncrementos del tiempo.
 h=0.0001
 
 #Número de iteraciones.
-iteraciones = 80000
+iteraciones = 100000
 
 #Pedimos el número de planetas con los que se ejcutará la simulación.
 n = 9
@@ -138,34 +134,24 @@ def periodo_orbital(r_rees, periodo, k):
 
 
 #Inicializamos las variables que se utilizarán en el bucle.
-v_rees = v_esc(velocidades, G, r_tierra, m_sol, n)
-r_rees = r_esc(radios, r_tierra, n)
-m_rees = m_esc(masas, m_sol, n)
-a_t = np.zeros((n, 2))
-a_i = aceleracion_por_planeta(n, r_rees, m_rees, a_t)
-w_i = np.zeros((n, 2))
-a_i_th = np.zeros((n, 2))
-periodo = np.zeros(n)
+@jit(nopython=True)
+def inicializar_variables(n, velocidades, G, r_tierra, m_sol, radios, masas):
+    v_rees = v_esc(velocidades, G, r_tierra, m_sol, n)
+    r_rees = r_esc(radios, r_tierra, n)
+    m_rees = m_esc(masas, m_sol, n)
+    a_t = np.zeros((n, 2))
+    a_i = aceleracion_por_planeta(n, r_rees, m_rees, a_t)
+    w_i = np.zeros((n, 2))
+    a_i_th = np.zeros((n, 2))
+    
+    return v_rees, r_rees, m_rees, a_i, w_i, a_i_th
 
-# Abrir tres archivos para guardar los datos de las posiciones, velocidades y aceleraciones
-file_posiciones = open('posiciones.dat', "w")
-file_velocidades = open('velocidades.dat', "w")
-file_aceleraciones = open('aceleraciones.dat', "w")
-
-
-def guardar_datos(k, n, r_rees, v_rees):
-    if k % (n*100) == 0:
-        np.savetxt(file_posiciones, r_rees, delimiter=",")
-        np.savetxt(file_velocidades, v_rees, delimiter=",")
-        file_posiciones.write("\n")
-        file_velocidades.write("\n")
-
+k = 0
 # Realizamos el bucle para calcular las posiciones y velocidades de los planetas.
-def simulacion(n, r_rees, v_rees, a_i, w_i, h, iteraciones):
+@jit(nopython=True)
+def simulacion(n, r_rees, v_rees, a_i, w_i, h, iteraciones, m_rees, k):
     
     for k in range(iteraciones):
-
-        guardar_datos(k, n, r_rees, v_rees)
 
         w_i = w_ih(n, v_rees, a_i, w_i, h)
         r_rees_th = r_th(n, r_rees, w_i, h)
@@ -175,29 +161,36 @@ def simulacion(n, r_rees, v_rees, a_i, w_i, h, iteraciones):
         v_rees = v_th
         a_i = a_i_th
         
-        periodo_orbital(r_rees, periodo, k)
-        
-        
+d_n_p =  r_pluton - r_neptuno        
+tiempo = 0
+file = open('Tiempo_planetas.dat', 'w')
+while tiempo < 100:
+    #Establecemos el tiempo inicial.
 
-#Ejecutamos la simulación.
-simulacion(n, r_rees, v_rees, a_i, w_i, h, iteraciones)
+    t0 = time.time()
 
-@jit(nopython=True)
-def mostrar_datos_periodo(n, periodo):
-    labels = ['Sol','Mercurio', 'Venus', 'Tierra', 'Marte', 'Jupiter', 'Saturno', 'Urano', 'Neptuno', 'Pluton']
-    for i in range(n):
-        print("El periodo de la órbita de ", labels[i], " es: ", periodo[i]/periodo[3]*365.25, " dias terrestres.")
+    #Inicializamos las variables.
+    v_rees, r_rees, m_rees, a_i, w_i, a_i_th = inicializar_variables(n, velocidades, G, r_tierra, m_sol, radios, masas)
+
+    k = 0
+    #Ejecutamos la simulación.
+    simulacion(n, r_rees, v_rees, a_i, w_i, h, iteraciones, m_rees, k)
         
-mostrar_datos_periodo(n, periodo)
+    #Tiempo final.
+    t1 = time.time()
+
+    tiempo = t1 - t0
     
-# Cerrar los archivos
-file_posiciones.close()
-file_velocidades.close()
-file_aceleraciones.close()
-
-#Tiempo final.
-t1 = time.time()
-
-tiempo = t1 - t0
-
-print("El tiempo de ejecución es: ", tiempo, "segundos")
+    #Guardamos los datos en un archivo de texto
+    np.savetxt('Tiempo_planetas.dat', np.column_stack((n, tiempo)), delimiter=",")
+    print("El tiempo de ejecución para", n ,"planetas es: ", tiempo, "segundos")
+    
+    #Añadimos un planeta.
+    nueva_velocidad = velocidades[n]-np.array([0, 0.7*10**3])
+    distancia_nuevo_planeta = radios[n] + d_n_p
+    n += 1
+    masas = np.append(masas, m_pluton)
+    radios = np.vstack((radios, distancia_nuevo_planeta))
+    velocidades = np.vstack((velocidades, nueva_velocidad))
+    
+file.close()
