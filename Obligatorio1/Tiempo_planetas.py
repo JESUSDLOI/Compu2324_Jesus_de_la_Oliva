@@ -6,18 +6,18 @@ import time
 from numba import jit
 
 #Establecemos los uncrementos del tiempo.
-h=0.0001
+h = 0.0001
 
-#Número de iteraciones.
+# Número de iteraciones.
 iteraciones = 100000
 
-#Pedimos el número de planetas con los que se ejcutará la simulación.
-n = 9
+# Pedimos el número de planetas con los que se ejecutará la simulación.
+n = int(9)
 
-#Constante de gravitación universal.
+# Constante de gravitación universal.
 G = 6.674*10**(-11) 
 
-#Distancia al Sol de los planetas m.
+# Distancia al Sol de los planetas m.
 r_sol = np.array([0, 0])
 r_mrcurio = np.array([5.791*10**10, 0])
 r_venus = np.array([1.082*10**11, 0])
@@ -182,7 +182,7 @@ while tiempo < 100:
     tiempo = t1 - t0
     
     #Guardamos los datos en un archivo de texto
-    np.savetxt('Tiempo_planetas.dat', np.column_stack((n, tiempo)), delimiter=",")
+    np.savetxt(file, np.column_stack((n, tiempo)), delimiter=",")
     print("El tiempo de ejecución para", n ,"planetas es: ", tiempo, "segundos")
     
     #Añadimos un planeta.
