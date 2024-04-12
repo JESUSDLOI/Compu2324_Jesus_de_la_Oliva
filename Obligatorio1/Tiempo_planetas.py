@@ -9,7 +9,7 @@ from numba import jit
 h = 0.0001
 
 # Número de iteraciones.
-iteraciones = 100000
+iteraciones = 500000
 
 # Pedimos el número de planetas con los que se ejecutará la simulación.
 n = int(9)
