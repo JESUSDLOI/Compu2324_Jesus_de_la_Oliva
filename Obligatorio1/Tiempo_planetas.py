@@ -9,7 +9,7 @@ from numba import jit
 h = 0.0001
 
 # Número de iteraciones.
-iteraciones = 500000
+iteraciones = 100000
 
 # Pedimos el número de planetas con los que se ejecutará la simulación.
 n = int(9)
@@ -146,12 +146,23 @@ def inicializar_variables(n, velocidades, G, r_tierra, m_sol, radios, masas):
     
     return v_rees, r_rees, m_rees, a_i, w_i, a_i_th
 
+
+
+def guardar_datos(k, n, r_rees, v_rees):
+    if k % (n*100) == 0:
+        np.savetxt(file_posiciones, r_rees, delimiter=",")
+        np.savetxt(file_velocidades, v_rees, delimiter=",")
+        file_posiciones.write("\n")
+        file_velocidades.write("\n")
+
 k = 0
 # Realizamos el bucle para calcular las posiciones y velocidades de los planetas.
-@jit(nopython=True)
 def simulacion(n, r_rees, v_rees, a_i, w_i, h, iteraciones, m_rees, k):
     
     for k in range(iteraciones):
+
+        
+        guardar_datos(k, n, r_rees, v_rees)
 
         w_i = w_ih(n, v_rees, a_i, w_i, h)
         r_rees_th = r_th(n, r_rees, w_i, h)
@@ -164,13 +175,17 @@ def simulacion(n, r_rees, v_rees, a_i, w_i, h, iteraciones, m_rees, k):
 d_n_p =  r_pluton - r_neptuno        
 tiempo = 0
 file = open('Tiempo_planetas.dat', 'w')
-while tiempo < 100:
+for u in range(7):
     #Establecemos el tiempo inicial.
 
     t0 = time.time()
 
     #Inicializamos las variables.
     v_rees, r_rees, m_rees, a_i, w_i, a_i_th = inicializar_variables(n, velocidades, G, r_tierra, m_sol, radios, masas)
+
+    # Abrir tres archivos para guardar los datos de las posiciones, velocidades y aceleraciones
+    file_posiciones = open('posiciones.dat', "w")
+    file_velocidades = open('velocidades.dat', "w")
 
     k = 0
     #Ejecutamos la simulación.
@@ -192,5 +207,9 @@ while tiempo < 100:
     masas = np.append(masas, m_pluton)
     radios = np.vstack((radios, distancia_nuevo_planeta))
     velocidades = np.vstack((velocidades, nueva_velocidad))
+
+    file_posiciones.close()
+    file_velocidades.close()
     
+
 file.close()
