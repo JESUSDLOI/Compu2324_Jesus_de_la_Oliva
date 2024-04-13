@@ -175,7 +175,7 @@ def simulacion(n, r_rees, v_rees, a_i, w_i, h, iteraciones, m_rees, k):
 d_n_p =  r_pluton - r_neptuno        
 tiempo = 0
 file = open('Tiempo_planetas.dat', 'w')
-for u in range(7):
+for u in range(50):
     #Establecemos el tiempo inicial.
 
     t0 = time.time()
