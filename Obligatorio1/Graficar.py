@@ -1,16 +1,22 @@
-import pandas as pd
 import matplotlib.pyplot as plt
+import numpy as np
 
-# Ask the user for the filename
-filename = input("Enter the filename of the .txt file: ")
+# Cargar los datos de los archivos
+data1 = np.loadtxt('Tiempo_planetas.dat', delimiter=',')
+data2 = np.loadtxt('Tiempo_planetas_.dat', delimiter=',')
 
-# Read the data from the file
-# Assumes the file has columns separated by spaces or tabs
-data = pd.read_csv(filename, sep=",")
+# Crear una figura y un eje
+fig, ax = plt.subplots()
 
-# Plot the data
-# This example assumes you have two columns named 'x' and 'y'
-plt.plot(data['x'], data['y'])
+# Graficar los datos
+ax.plot(data1[:, 0], data1[:, 1], color='blue', label='Cáculos Portatil')
+ax.plot(data2[:, 0], data2[:, 1], color='red', label='Cálculos Joel')
 
-# Show the plot
+# Añadir una leyenda
+ax.legend()
+ax.set_title('Tiempo de cálculo por planeta añadido')
+ax.set_xlabel('Número de planetas')
+ax.set_ylabel('Tiempo de cálculo (s)')
+
+# Mostrar el gráfico
 plt.show()
