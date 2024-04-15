@@ -150,7 +150,6 @@ periodo = np.zeros(n)
 # Abrir tres archivos para guardar los datos de las posiciones, velocidades y aceleraciones
 file_posiciones = open('posiciones.dat', "w")
 file_velocidades = open('velocidades.dat', "w")
-file_aceleraciones = open('aceleraciones.dat', "w")
 
 
 def guardar_datos(k, n, r_rees, v_rees):
@@ -193,7 +192,6 @@ mostrar_datos_periodo(n, periodo)
 # Cerrar los archivos
 file_posiciones.close()
 file_velocidades.close()
-file_aceleraciones.close()
 
 #Tiempo final.
 t1 = time.time()
