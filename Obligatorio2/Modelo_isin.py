@@ -8,13 +8,13 @@ import time
 #ININICIAR VARIABLES
 
 #Lado de la malla
-lado_malla = (10, 10, 10)
+lado_malla = (10, 15, 20)
 
 #Temperatura
-temperaturas = (1, 2, 3)
+temperaturas = (1, 1, 1)
 
 #Número de iteraciones
-N = 10000
+iteraciones = (100, 10000, 100000)
 
 # ================================================================================
 
@@ -89,7 +89,7 @@ def ising_model(M, T, N):
 
 
 #Simulaciones de Monte Carlo distintas temperaturas y mallas
-def simulaciones(lado_malla, temperaturas, N):
+def simulaciones(lado_malla, temperaturas, iteraciones):
     #Cantidad de archivos
     C = len(temperaturas)
     resultados = np.zeros((C, 3))
@@ -98,7 +98,7 @@ def simulaciones(lado_malla, temperaturas, N):
         #Temperatura y lado de la malla
         T = temperaturas[i]
         M = lado_malla[i]
-
+        N = iteraciones[i]
         #Modelo y tiempo de ejecución
         tiempo_0 = time.time()
         ising_model(M, T, N)
@@ -113,4 +113,4 @@ def simulaciones(lado_malla, temperaturas, N):
 
     return resultados
 
-print(simulaciones(lado_malla, temperaturas, N))
+print(simulaciones(lado_malla, temperaturas, iteraciones))
