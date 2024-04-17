@@ -8,13 +8,13 @@ import time
 #ININICIAR VARIABLES
 
 #Lado de la malla
-lado_malla = (10, 15, 20)
+lado_malla = (10, 15, 16)
 
 #Temperatura
-temperaturas = (1, 1, 1)
+temperaturas = (1, 1, 1.5)
 
-#Número de iteraciones
-iteraciones = (100, 10000, 100000)
+#Número de pasos_monte
+pasos_monte = (100, 10000, 10000)
 
 # ================================================================================
 
@@ -78,18 +78,19 @@ def ising_model(M, T, N):
 
     #Archivo de datos
     with open('ising_data_tem_{0}_malla_{1}.dat'.format(T, M), 'w') as file:
-
-        for k in range(N):
-            #Matriz resultado
-            submatriz = secuencia_isin(M, T, matriz)
-            #Guardar matriz en archivo
-            file.write('\n')
+        for n in range(N):
+            for k in range(M**2):
+                #Matriz resultado
+                submatriz = secuencia_isin(M, T, matriz)
+                #Guardar matriz en archivo
+            if n % 100 == 0:    
+                file.write('\n')
             np.savetxt(file, submatriz, fmt='%d', delimiter=',') 
     file.close()
 
 
 #Simulaciones de Monte Carlo distintas temperaturas y mallas
-def simulaciones(lado_malla, temperaturas, iteraciones):
+def simulaciones(lado_malla, temperaturas, pasos_monte):
     #Cantidad de archivos
     C = len(temperaturas)
     resultados = np.zeros((C, 3))
@@ -98,7 +99,7 @@ def simulaciones(lado_malla, temperaturas, iteraciones):
         #Temperatura y lado de la malla
         T = temperaturas[i]
         M = lado_malla[i]
-        N = iteraciones[i]
+        N = pasos_monte[i]
         #Modelo y tiempo de ejecución
         tiempo_0 = time.time()
         ising_model(M, T, N)
@@ -113,4 +114,4 @@ def simulaciones(lado_malla, temperaturas, iteraciones):
 
     return resultados
 
-print(simulaciones(lado_malla, temperaturas, iteraciones))
+print(simulaciones(lado_malla, temperaturas, pasos_monte))
