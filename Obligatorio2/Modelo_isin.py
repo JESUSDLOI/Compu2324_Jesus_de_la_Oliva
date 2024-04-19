@@ -1,6 +1,7 @@
 import numpy as np 
 from numpy import random
 from numba import jit
+import threading
 import time
 
 # ================================================================================
@@ -8,13 +9,13 @@ import time
 #ININICIAR VARIABLES
 
 #Lado de la malla
-lado_malla = np.full((20, 64)).astype(np.int8)
+lado_malla = np.full(4, 64).astype(np.int8)
 
 #Temperatura
-temperaturas = np.linspace((0.5, 5, 20)).astype(np.float32)
+temperaturas = np.linspace(0.5, 5, 4).astype(np.float32)
 
 #Número de pasos_monte
-pasos_monte = np.full((20, 100000)).astype(np.int32)
+pasos_monte = np.full(4, 1000).astype(np.int32)
 
 # ================================================================================
 
@@ -94,7 +95,7 @@ def ising_model(M, T, N):
     #Matriz de Ising
     matriz = mtrz_aleatoria(M)
         #Archivo de datos
-    with open('ising_data_tem_{0}_malla_{1}.dat'.format(T, M), 'w') as file:
+    with open('ising_data_tem_{0:.2f}_malla_{1}.dat'.format(T, M), 'w') as file:
         for n in range(N):
             for k in range(M**2):
                 #Matriz resultado
@@ -107,32 +108,41 @@ def ising_model(M, T, N):
 
 #Simulaciones de Monte Carlo distintas temperaturas y mallas
 def simulaciones(lado_malla, temperaturas, pasos_monte):
+
+    threads = []
     #Cantidad de archivos
     C = len(temperaturas)
-    resultados = np.zeros((C, 3))
+    resultados = np.zeros((C, 2))
 
     i = 0
-    while i < C:
+    while i in range(C):
         #Temperatura y lado de la malla
         T = temperaturas[i]
         M = lado_malla[i]
         N = pasos_monte[i]
         #Modelo y tiempo de ejecución
-        tiempo_0 = time.time()
-        ising_model(M, T, N)
-        tiempo_1 = time.time()
-        tiempo = tiempo_1 - tiempo_0
+        
+        t = threading.Thread(target=ising_model, args=(M, T, N))
+        threads.append(t)
+        t.start()
 
         #Guardar parámetros de la simulación
         resultados[i, 0] = T
         resultados[i, 1] = M
-        resultados[i, 2] = tiempo
         i += 1
 
-    return resultados
+    return resultados, threads
 
 
-print(simulaciones(lado_malla, temperaturas, pasos_monte))
+tiempo_0 = time.time()
+#Ejecutar simulaciones
+resultados, threads = simulaciones(lado_malla, temperaturas, pasos_monte)
+
+for t in threads:
+    t.join()
+tiempo_1 = time.time()
+print('Tiempo de ejecución: ', tiempo_1 - tiempo_0)
+print(resultados)
 
 
 
