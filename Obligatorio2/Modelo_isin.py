@@ -9,13 +9,13 @@ import time
 #ININICIAR VARIABLES
 
 #Lado de la malla
-lado_malla = np.full(4, 64).astype(np.int8)
+lado_malla = np.full(20, 64).astype(np.int8)
 
 #Temperatura
-temperaturas = np.linspace(0.5, 5, 4).astype(np.float32)
+temperaturas = np.linspace(0.5, 5, 20).astype(np.float32)
 
 #Número de pasos_monte
-pasos_monte = np.full(4, 100000).astype(np.int32)
+pasos_monte = np.full(20, 1000).astype(np.int32)
 
 # ================================================================================
 
@@ -33,19 +33,19 @@ def cond_contorno(M, i, j):
     if i == 0:
         izquierda = M - 1
     else:
-        izquierda = i
+        izquierda = i - 1
     if i == M - 1:
         derecha = 0
     else:
-        derecha = i
+        derecha = i + 1
     if j == 0:
         arriba = M - 1
     else:
-        arriba = j
+        arriba = j - 1
     if j == M - 1:
         abajo = 0
     else:
-        abajo = j
+        abajo = j + 1
     return izquierda, derecha, arriba, abajo
 
     
@@ -102,7 +102,7 @@ def ising_model(M, T, N):
                 #Matriz resultado
                 matriz = secuencia_isin(M, T, matriz)
                 #Guardar matriz en archivo
-            if n % 100 == 0:
+            if n % 10 == 0:
                 file.write('\n')
                 np.savetxt(file, matriz, fmt='%d', delimiter=',') 
     pass
