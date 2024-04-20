@@ -59,7 +59,7 @@ def calculo_matriz(matriz, M):
     j = np.random.randint(0, M)
 
     #Condiciones de contorno
-    izquierda, derecha, arriba, abajo = cond_contorno_1(M, i, j)
+    izquierda, derecha, arriba, abajo = cond_contorno(M, i, j)
 
     #Calculo de la variación de la energía
     delta_E = 2*matriz[i,j]*(matriz[(derecha),j] + matriz[i,(abajo)] + matriz[(izquierda),j] + matriz[i,(arriba)])
