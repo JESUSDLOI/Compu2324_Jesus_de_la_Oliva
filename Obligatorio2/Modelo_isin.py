@@ -15,43 +15,44 @@ lado_malla = np.full(4, 64).astype(np.int8)
 temperaturas = np.linspace(0.5, 5, 4).astype(np.float32)
 
 #Número de pasos_monte
-pasos_monte = np.full(4, 1000).astype(np.int32)
+pasos_monte = np.full(4, 100000).astype(np.int32)
 
 # ================================================================================
 
 
 
 #Matriz aleatoria entre estado 1 y -1
-@jit(nopython=True, fastmath=True)
+@jit(nopython=True, fastmath=True, cache=True)
 def mtrz_aleatoria(M):
     matriz = 2 * np.random.randint(0, 2, size=(M, M)).astype(np.int8) - 1
     return matriz
 
 #Condiciones de contorno periódicas
-@jit(nopython=True, fastmath=True)
-def cond_contorno_1(M, i, j):
+@jit(nopython=True, fastmath=True, cache=True)
+def cond_contorno(M, i, j):
     if i == 0:
-        izquierda = M - 2
+        izquierda = M - 1
     else:
-        izquierda = i - 1
+        izquierda = i
     if i == M - 1:
-        derecha = 1
+        derecha = 0
     else:
-        derecha = i + 1
+        derecha = i
     if j == 0:
-        arriba = M - 2
+        arriba = M - 1
     else:
-        arriba = j - 1
+        arriba = j
     if j == M - 1:
-        abajo = 1
+        abajo = 0
     else:
-        abajo = j + 1
+        abajo = j
     return izquierda, derecha, arriba, abajo
+
     
 
 
 #Cálculo de la matriz
-@jit(nopython=True, fastmath=True)
+@jit(nopython=True, fastmath=True, cache=True)
 def calculo_matriz(matriz, M):
     #Iteración sobre la matriz
     i = np.random.randint(0, M)
@@ -65,7 +66,7 @@ def calculo_matriz(matriz, M):
     return i, j, delta_E
 
 #Secuencia de Ising
-@jit(nopython=True, fastmath=True)
+@jit(nopython=True, fastmath=True, cache=True)
 def secuencia_isin(M, T, matriz):
     
     i, j, delta_E = calculo_matriz(matriz, M)
@@ -101,9 +102,10 @@ def ising_model(M, T, N):
                 #Matriz resultado
                 matriz = secuencia_isin(M, T, matriz)
                 #Guardar matriz en archivo
-            if n % 10 == 0:
+            if n % 100 == 0:
                 file.write('\n')
                 np.savetxt(file, matriz, fmt='%d', delimiter=',') 
+    pass
 
 
 #Simulaciones de Monte Carlo distintas temperaturas y mallas
@@ -125,7 +127,8 @@ def simulaciones(lado_malla, temperaturas, pasos_monte):
         t = threading.Thread(target=ising_model, args=(M, T, N))
         threads.append(t)
         t.start()
-
+        t.join()
+        
         #Guardar parámetros de la simulación
         resultados[i, 0] = T
         resultados[i, 1] = M
@@ -137,9 +140,7 @@ def simulaciones(lado_malla, temperaturas, pasos_monte):
 tiempo_0 = time.time()
 #Ejecutar simulaciones
 resultados, threads = simulaciones(lado_malla, temperaturas, pasos_monte)
-
-for t in threads:
-    t.join()
+    
 tiempo_1 = time.time()
 print('Tiempo de ejecución: ', tiempo_1 - tiempo_0)
 print(resultados)
