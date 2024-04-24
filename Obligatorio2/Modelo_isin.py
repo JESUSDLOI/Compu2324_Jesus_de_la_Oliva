@@ -9,7 +9,7 @@ import time
 #ININICIAR VARIABLES
 
 #Lado de la malla
-lado_malla = np.full(2, 120).astype(np.int32)
+lado_malla = np.full(2, 120).astype(np.int8)
 
 #Temperatura
 temperaturas = np.linspace(2.27, 5, 2).astype(np.float32)
