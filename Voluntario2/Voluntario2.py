@@ -61,13 +61,11 @@ def calculo_matriz(matriz, M):
     return i, j, delta_E
 
 #Secuencia de Ising
-jit(nopython=True, fastmath=True, cache=True)
+@jit(nopython=True, fastmath=True, cache=True)
 def secuencia_isin(M, T, matriz, n):
     
     #Variables
     i, j, delta_E = calculo_matriz(matriz, M)
-    E = 0
-    magnt_prom = 0
     
     #Evaluar probabilidad de cambio
     p = np.min([1, np.exp(-2*delta_E/T)])
@@ -80,6 +78,9 @@ def secuencia_isin(M, T, matriz, n):
         matriz[i,j] = -matriz[i,j]  
 
     if n % 100 == 0:
+        #Variables
+        magnt_prom = 0
+        E = 0
         #Cálculo de la magnetización
         magnt_prom = np.sum(matriz)
         #Cálculo de la energía
@@ -98,32 +99,30 @@ def secuencia_isin(M, T, matriz, n):
 #Matriz de Ising
 def ising_model(M, T, N):
     #Variables
-    magnt_prom = np.array([])
-    E = np.zeros(N)
     k= 0
     n = 0
-    Z_i = np.array([])
-    magnetización_i = np.array([])
-    energía_i = np.array([])
-    probabilidad_i = np.array([])
+    magnetizaciones = []    
+    energias = []
+    Energia_cuadrada = []
 
     #Matriz de Ising
     matriz = mtrz_aleatoria(M)
 
+    m_cuadrado = M**2
     #Archivo de datos
     while n < N:
-        while k < (M**2):
-            #Matriz resultado
-            magnt_prom, E[n] = secuencia_isin(M, T, matriz, n, magnt_prom)
-            magnetización_i = np.append(magnetización_i, magnt_prom)
-            energía_i = np.append(energía_i, E)
-            k += 1
-        if n % 100 == 0:
-            probabilidad_i = np.append(probabilidad_i, np.exp(-E/T))
+        while k < (m_cuadrado):
+            
+                #Matriz resultado
+                magnt_prom, E= secuencia_isin(M, T, matriz, n, magnt_prom)
+                magnetizaciones.append(magnt_prom)
+                energias.append(E)
+                k += 1
+            
+                probabilidad_i = np.append(probabilidad_i, np.exp(-E/T))
         n += 1
-    Z_i = np.append(Z_i, np.sum(np.exp(-E/T))/N)
-    
-    return Z_i, magnetización_i, energía_i, probabilidad_i
+   
+    return energias, magnetizaciones, probabilidad_i
 
 
 
@@ -144,11 +143,10 @@ def simulaciones(lado_malla, temperaturas, pasos_monte):
         N = pasos_monte[i]
 
         #Modelo y tiempo de ejecución
-        Z_i, magnetización_i, energía_i, probabilidad_i = ising_model(M, T, N)
-        Z.append(Z_i)
-        magnetización.append(magnetización_i)
-        energía.append(energía_i)
-        probabilidad.append(probabilidad_i)
+        en, magn, prob  = ising_model(M, T, N)
+
+        #Guardar resultados
+
         
         #Guardar parámetros de la simulación
         resultados[i, 0] = T

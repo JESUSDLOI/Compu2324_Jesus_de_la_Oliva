@@ -9,13 +9,13 @@ import time
 #ININICIAR VARIABLES
 
 #Lado de la malla
-lado_malla = np.full(20, 64).astype(np.int8)
+lado_malla = np.full(2, 120).astype(np.int32)
 
 #Temperatura
-temperaturas = np.linspace(0.5, 5, 20).astype(np.float32)
+temperaturas = np.linspace(2.27, 5, 2).astype(np.float32)
 
 #Número de pasos_monte
-pasos_monte = np.full(20, 1000).astype(np.int32)
+pasos_monte = np.full(2, 10000).astype(np.int32)
 
 # ================================================================================
 
@@ -113,7 +113,7 @@ def simulaciones(lado_malla, temperaturas, pasos_monte):
 
     threads = []
     #Cantidad de archivos
-    C = len(temperaturas)
+    C = len(lado_malla)
     resultados = np.zeros((C, 2))
 
     i = 0

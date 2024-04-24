@@ -45,8 +45,8 @@ from matplotlib.animation import FuncAnimation
 import numpy as np
 import io
 
-T = 1.68
-M = 64
+T = 2.27
+M = 120
 
 # Parámetros
 # ========================================
