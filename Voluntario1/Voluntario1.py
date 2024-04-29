@@ -10,7 +10,7 @@ from numba import jit
 t0 = time.time()
 
 #Establecemos los uncrementos del tiempo.
-h=0.00005
+h=0.00002
 
 #Número de iteraciones.
 iteraciones = 80000
@@ -30,7 +30,7 @@ s = 1.5
 #Posición inicial de las partículas
 @jit(nopython=True, fastmath=True, cache=True)
 def posiciones_iniciales(n, l, s):
-    posicion = np.zeros((n, 2))
+    posicion = np.zeros((n, 2))+ 1
     for i in range(n-1):
         x = posicion[i][0] + s
         if x > l:
@@ -63,6 +63,7 @@ def contorno(posicion_th, l):
 @jit(nopython=True, fastmath=True, cache=True)
 def distancia_condiciones(posicion, i, j, l):
     resta = np.zeros(2)
+    
     resta[0] = np.abs(posicion[i][0] - posicion[j][0])
     if resta[0] > l/2:
         resta[0] = np.abs(resta[0] - l)
@@ -74,6 +75,20 @@ def distancia_condiciones(posicion, i, j, l):
     distancia = np.sqrt(resta[0]**2 + resta[1]**2)
     return distancia
     
+#Definimos una función para calcular el versor de la distancia entre dos partículas.
+@jit(nopython=True, fastmath=True, cache=True)
+def versor_distancia(posicion, i, j, l):
+    resta = np.zeros(2)
+    
+    resta[0] = posicion[i][0] - posicion[j][0]
+    if abs(resta[0]) > l/2:
+        resta[0] = resta[0] - l
+
+    resta[1] = posicion[i][1] - posicion[j][1]
+    if abs(resta[1]) > l/2:
+        resta[1] = resta[1] - l
+
+    return resta
 
 #Definimos la función a(t) a partir de la suma de fuerazas que se ejercen sobre cada partícula i.
 @jit(nopython=True, fastmath=True, cache=True)
@@ -82,7 +97,9 @@ def aceleracion_particulas(n, posicion, a_t):
         for j in range(n):
             if i != j:
                 distancia = distancia_condiciones(posicion, i, j, l)
-                a_t[i] += (48/distancia - 24/distancia) 
+                if distancia < 3 and distancia > 0.001:
+                    versor = versor_distancia(posicion, i, j, l)
+                    a_t[i] += (48/distancia**13 - 24*distancia**7)*versor/distancia               
     return a_t
 
 #Definimos la función w[i].
@@ -106,7 +123,9 @@ def acel_i_th(n, posicion_th, a_i_th):
         for j in range(n):
             if i != j:
                 distancia = distancia_condiciones(posicion_th, i, j, l)
-                a_i_th[i] += (48/distancia - 24/distancia) 
+                if distancia < 3 and distancia > 0.001:
+                    versor = versor_distancia(posicion_th, i, j, l)
+                    a_i_th[i] += (48/distancia**13 - 24*distancia**7)*versor/distancia
     return a_i_th 
 
 
@@ -119,7 +138,7 @@ def velocidad_th(w_i, n, v_th, a_i_th, h):
 
 
 #Inicializamos las variables que se utilizarán en el bucle.
-velocidades = np.round(np.random.uniform(-1, 1, (n, 2)), 2)
+velocidades = np.round(np.random.uniform(-1, 1, (n, 2)), 2)*0.1
 posiciones = posiciones_iniciales(n, l, s)
 posicion_th = np.zeros((n, 2))
 a_t = np.zeros((n, 2))
@@ -133,10 +152,11 @@ file_velocidades = open('velocidades_part.dat', "w")
 
 
 def guardar_datos(k, n, posiciones, velocidades):
-    np.savetxt(file_posiciones, posiciones, delimiter=",")
-    np.savetxt(file_velocidades, velocidades, delimiter=",")
-    file_posiciones.write("\n")
-    file_velocidades.write("\n")
+    if k % 1 == 0:
+        np.savetxt(file_posiciones, posiciones, delimiter=",")
+        np.savetxt(file_velocidades, velocidades, delimiter=",")
+        file_posiciones.write("\n")
+        file_velocidades.write("\n")
 
 # Realizamos el bucle para calcular las posiciones y velocidades de los planetas.
 def simulacion(n, posiciones, velocidades, a_i, w_i, h, iteraciones):
