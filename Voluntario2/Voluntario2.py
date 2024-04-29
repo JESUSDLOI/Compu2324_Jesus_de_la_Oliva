@@ -8,13 +8,13 @@ import time
 #ININICIAR VARIABLES
 
 #Lado de la malla
-lado_malla = np.full(4, 64).astype(np.int8)
+lado_malla = np.full(3, 10).astype(np.int8)
 
 #Temperatura
-temperaturas = np.linspace(0.5, 5, 4).astype(np.float32)
+temperaturas = np.linspace(0.5, 5, 3).astype(np.float32)
 
 #Número de pasos_monte
-pasos_monte = np.full(4, 1000).astype(np.int32)
+pasos_monte = np.full(3, 1000000).astype(np.int32)
 
 # ================================================================================
 
@@ -62,13 +62,18 @@ def calculo_matriz(matriz, M):
 
 #Secuencia de Ising
 @jit(nopython=True, fastmath=True, cache=True)
-def secuencia_isin(M, T, matriz, n):
+def secuencia_isin(M, T, matriz, n, magnt_prom, E, m_cuadrado):
     
     #Variables
     i, j, delta_E = calculo_matriz(matriz, M)
     
     #Evaluar probabilidad de cambio
-    p = np.min([1, np.exp(-2*delta_E/T)])
+    p_r = np.exp(-2*delta_E/T)
+
+    if p_r > 1:
+        p = 1
+    else:
+        p = p_r
 
     #Número aleatorio entre  para comparar con la probabilidad
     r = np.random.uniform(0, 1)
@@ -78,51 +83,48 @@ def secuencia_isin(M, T, matriz, n):
         matriz[i,j] = -matriz[i,j]  
 
     if n % 100 == 0:
-        #Variables
-        magnt_prom = 0
-        E = 0
-        #Cálculo de la magnetización
-        magnt_prom = np.sum(matriz)
-        #Cálculo de la energía
+        #Cálculo de la energía y magnetización promedio
         i = 0
         j = 0
         while i < M:
             while j < M:
                 izquierda, derecha, arriba, abajo = cond_contorno(M, i, j)
+                magnt_prom += matriz[i,j]
                 E += matriz[i,j]*(matriz[(derecha),j] + matriz[i,(abajo)] + matriz[(izquierda),j] + matriz[i,(arriba)])
                 j += 1
             i += 1
         E = -E/4
+        magnt_prom = magnt_prom/(m_cuadrado)
 
     return magnt_prom, E
 
 #Matriz de Ising
+@jit(nopython=True, fastmath=True, cache=True)
 def ising_model(M, T, N):
     #Variables
     k= 0
     n = 0
     magnetizaciones = []    
     energias = []
-    Energia_cuadrada = []
+    magnt_prom = 0
+    E = 0
 
     #Matriz de Ising
     matriz = mtrz_aleatoria(M)
-
     m_cuadrado = M**2
+
     #Archivo de datos
     while n < N:
         while k < (m_cuadrado):
             
-                #Matriz resultado
-                magnt_prom, E= secuencia_isin(M, T, matriz, n, magnt_prom)
-                magnetizaciones.append(magnt_prom)
-                energias.append(E)
-                k += 1
-            
-                probabilidad_i = np.append(probabilidad_i, np.exp(-E/T))
+            #Resultados
+            magnt_prom, E = secuencia_isin(M, T, matriz, n, magnt_prom, E, m_cuadrado)
+            magnetizaciones.append(magnt_prom)
+            energias.append(E)
+            k += 1
         n += 1
    
-    return energias, magnetizaciones, probabilidad_i
+    return energias, magnetizaciones
 
 
 
@@ -134,42 +136,38 @@ def simulaciones(lado_malla, temperaturas, pasos_monte):
     #Cantidad de archivos
     C = len(temperaturas)
     resultados = np.zeros((C, 2))
-    Z, magnetización, energía, probabilidad = [], [], [], []
     
     for i in range(C):
         #Temperatura y lado de la malla
         T = temperaturas[i]
         M = lado_malla[i]
         N = pasos_monte[i]
+        en = 0
+        magn = 0
 
         #Modelo y tiempo de ejecución
-        en, magn, prob  = ising_model(M, T, N)
+        tiempo_0 = time.time()
+        en, magn  = ising_model(M, T, N)
+        tiempo_1 = time.time()
 
-        #Guardar resultados
+        tiempo = tiempo_1 - tiempo_0
 
-        
+        energia_cuadra = np.square(np.array(en))
+        promedio_mag = np.mean(magn)
+        media_eners = np.mean(en)
+        promedio_energia = media_eners/(2*M)
+        calor_especif = (np.mean(energia_cuadra) - media_eners**2)/(T*M**2)
+
+        open('resultados_'+str(T)+'_'+str(M)+'.dat' , 'w').write(f'Magnetizacion prmedio {promedio_mag} \n Energia promedio {promedio_energia} \n Calor especifico {calor_especif} \n Tiempo {tiempo}\n')
+
         #Guardar parámetros de la simulación
         resultados[i, 0] = T
         resultados[i, 1] = M
     
-    return Z, magnetización, energía, probabilidad, resultados
     
-
-        
-        
+simulaciones(lado_malla, temperaturas, pasos_monte)
 
 
-tiempo_0 = time.time()
 
-Z, magnetización, energía, probabilidad, resultados = simulaciones(lado_malla, temperaturas, pasos_monte)
+                                  
 
-tiempo_1 = time.time()
-
-#Guardar resultados
-print('Z: ', Z)
-print('Magnetización: ', magnetización)
-print('Energía: ', energía)
-print('Probabilidad: ', probabilidad)
-print('Resultados: ', resultados)
-
-print('Tiempo de ejecución: ', tiempo_1 - tiempo_0)
