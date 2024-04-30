@@ -1,11 +1,12 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from numba import jit
 
 
 #Numero de particulas
-n = 9
+n = 20
 
-l = 10
+l = 20
 
 # Leer las velocidades de un archivo de texto
 with open('velocidades_part.dat', 'r') as f:
@@ -16,21 +17,22 @@ with open('posiciones_part.dat', 'r') as f:
     
 v.pop()
 coordenadas.pop()
-
 filas = len(v)
+v = np.array(v)
+coordenadas = np.array(coordenadas)
 
 # Calcular la energía cinética.
-E_cin = np.zeros((n, int(filas)))
-
-for k in range(filas):
-    for i in range(n):
+@jit(nopython=True, fastmath=True, cache=True)
+def energia_cinetica(v, n, filas):
+    E_cin = np.zeros((n, int(filas)))
+    for k in range(filas):
+        for i in range(n):
             E_cin[i][k] = (np.linalg.norm(v[k][i])**2)/ 2
+    return E_cin
 
-#Calcular energía potencial.
-E_pot = np.zeros((n, int(filas)))
 
 #Función para calcular la distancia entre dos partículas.
-#@jit(nopython=True, fastmath=True, cache=True)
+@jit(nopython=True, fastmath=True, cache=True)
 def distancia_condiciones(posicion, i, j, l):
     resta = np.zeros(2)
     
@@ -45,37 +47,50 @@ def distancia_condiciones(posicion, i, j, l):
     distancia = np.sqrt(resta[0]**2 + resta[1]**2)
     return distancia
 
-for k in range(len(coordenadas)):
-    for i in range(n):
-        for j in range(n):
-            if i != j:
-                distancia = distancia_condiciones(coordenadas[k], i, j, l)
-                E_pot[i][k] -= (48/distancia**6 - 24)
-                
-# Inicializar E_planeta array
-E_planeta = np.zeros((n, int(filas)))
-# Inicializar E_total array
-E_total = np.zeros((int(filas)))
 
-for i in range(n):
-    for j in range(int(filas)):
-        E_planeta[i][j] = E_cin[i][j] + E_pot[i][j]
-        E_total[j] += E_planeta[i][j]
+# Calcular la energía potencial.
+@jit(nopython=True, fastmath=True, cache=True)
+def energia_potencial(coordenadas, n, l):
+    E_pot = np.zeros((n, int(filas)))
+    rango = len(coordenadas)
+    for k in range(rango-1):
+        for i in range(n):
+            for j in range(n):
+                if i != j:
+                    distancia = distancia_condiciones(coordenadas[k+1], i, j, l)
+                    if distancia > 0.001 and distancia < 3:
+                        E_pot[i][k+1] += 4*(1/distancia**12 - 1/distancia**6)
+    return -E_pot
+
+# Calcular la energía total.
+@jit(nopython=True, fastmath=True, cache=True)
+def energia_total(E_cin, E_pot, n, filas):
+    E_total = np.zeros((int(filas)))
+    E_planeta = np.zeros((n, int(filas)))
+    for i in range(n):
+        for j in range(int(filas)):
+            E_planeta[i][j] = E_cin[i][j] + E_pot[i][j]
+            E_total[j] += E_planeta[i][j]
+    return E_total
+
+E_cin = energia_cinetica(v, n, filas)   
+E_pot = energia_potencial(coordenadas, n, l)
+E_total = energia_total(E_cin, E_pot, n, filas)
 
 
 # Graficar la energía cinética            
 labels = np.array(['partícula ' + str(i) for i in range(n)])
 
 
-for i in range(n):  
-    #plt.figure(i)
-    # Graficar los datos
-    '''
-    plt.plot(E_cin[i], label='Energía cinética ' + labels[i])
-    plt.plot(E_pot[i], label='Energía potencial ' + labels[i])
-    plt.plot(E_planeta[i], label='Energía total ' + labels[i])
-    '''
-    plt.plot(E_total, label='Energía total')
+ 
+#plt.figure(i)
+# Graficar los datos
+'''
+plt.plot(E_cin[i], label='Energía cinética ' + labels[i])
+plt.plot(E_pot[i], label='Energía potencial ' + labels[i])
+plt.plot(E_planeta[i], label='Energía total ' + labels[i])
+'''
+plt.plot(E_total, label='Energía total')
 
 # Añadir título y etiquetas
 plt.xlabel('Index')
