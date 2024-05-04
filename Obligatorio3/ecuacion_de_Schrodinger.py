@@ -5,24 +5,25 @@ import time
 t_o = time.time()
 
 #Iteraciones
-iteraciones = 100
+iteraciones = 10000
 
 # Parametros iniciales
-N = 10000
+N = 400
 nciclos = N/4
-λ = 0.5
+λ = 0.7
 
 # Generar s, k0, Vj, Φj_0 and alpha
 k0 = 2 * np.pi / 4
 s = 1 / (4*k0**2)
 
 #Inicializar las variables
-Vj = np.zeros(N, dtype=complex)
+Vj = np.zeros(N)
 Oj_n = np.zeros(N, dtype=complex)    
 Oj_0 = np.zeros(N, dtype=complex)
 alpha = np.zeros(N, dtype=complex)
 beta = np.zeros(N, dtype=complex)
 Xj_n = np.zeros(N, dtype=complex)
+phi = np.zeros(N)
 
 #Calcular potencial, Vj
 def calc_Vj(N, λ, k0, Vj):
@@ -34,23 +35,23 @@ def calc_Vj(N, λ, k0, Vj):
     return Vj
 
 #Función onda inicial
-def onda_inicial(N, k0, Oj_0):
-    for i in range(1, N-1):
-        Oj_0[i] = np.exp(-1j * k0 * i)*np.exp((-8*i-N)**2 / N**2)
-    Oj_0[0] = 0
+def onda_inicial(N, k0, Oj_0, phi):
+    for i in range(0, N-1):
+        Oj_0[i] = np.exp(-1j * k0 * i)*np.exp(-8*(4*i-N)**2 / N**2)
+        phi[i] = np.abs(Oj_0[i])**2
     Oj_0[N-1] = 0
-    return Oj_0
+    return Oj_0, phi
 
 # Calcular alpha
 def calc_alpha(s, Vj, alpha, N):
     for i in range(N-1, 0, -1):
-        alpha[i-1] = -1/((-2 + 2j/s - Vj[i])+(alpha[i]))
+        alpha[i-1] = -1/((-2 + (2j/s) - Vj[i])+(alpha[i]))
     return alpha
 
 # Calcular beta
 def calc_beta(s, Oj_0, alpha, beta, Vj, N):
     for i in range(N-1, 0, -1):
-        beta[i-1] = (4j*Oj_0[i]-beta[i])/((-2 + 2j/s - Vj[i])+(alpha[i]))
+        beta[i-1] = ((4j*Oj_0[i]/s)-beta[i])/((-2 + 2j/s - Vj[i])+(alpha[i]))
     return beta
 
 # Calcular Xj_n
@@ -60,33 +61,42 @@ def calc_Xj_n(Xj_n, alpha, beta, N):
     return Xj_n
 
 # Calcular Oj_n
-def calc_Oj_n(Xj_n, Oj_n, file, j, N):
+def calc_Oj_n(Xj_n, Oj_n, N, phi):
     for i in range(N):
         Oj_n[i] = Xj_n[i] - Oj_n[i]
-        file.write(f"{j}, {Oj_n[i].real}, {Oj_n[i].imag}\n".format(i, Oj_n[i].real, Oj_n[i].imag))
-        
-    return Oj_n
+        phi[i] = np.abs(Oj_n[i])**2
+    return Oj_n, phi
 
 # Calcular la función de onda temporal
-def funcion_onda_temporal(N, k0, Oj_0, iteraciones, s, Vj, alpha, beta, Xj_n, Oj_n):
+def funcion_onda_temporal(N, k0, Oj_0, iteraciones, s, Vj, alpha, beta, Xj_n, Oj_n, phi, file, file_2):
     
-    onda_inicial(N, k0, Oj_0)
+    norma = 0
+    Oj_0, phi = onda_inicial(N, k0, Oj_0, phi)
     Vj = calc_Vj(N, λ, k0, Vj)
-    
-    file=open('schrodinger_data.dat','w')
-    
+    alpha = calc_alpha(s, Vj, alpha, N)
+
     for j in range(iteraciones):
-        alpha = calc_alpha(s, Vj, alpha, N)
+        norma = sum(phi)
+        file_2.write(f"{j}, {norma}\n")
+        Oj_0 = Oj_0 / np.sqrt(norma)
+        for i in range(N):
+            file.write(f"{i}, {phi[i]}, {Vj[i]}\n")
         beta = calc_beta(s, Oj_0, alpha, beta, Vj, N)
         Xj_n = calc_Xj_n(Xj_n, alpha, beta, N)
-        Oj_n = calc_Oj_n(Xj_n, Oj_n, file, j, N)
+        Oj_n, phi = calc_Oj_n(Xj_n, Oj_n, N, phi)
         Oj_0 = Oj_n
+        file.write("\n")
+        
             
         
-    file.close()
+file=open('schrodinger_data.dat','w')    
+file_2=open('norma_data.dat','w')
     
 #Llamamos a las funciones
-funcion_onda_temporal(N, k0, Oj_0, iteraciones, s, Vj, alpha, beta, Xj_n, Oj_n)
+funcion_onda_temporal(N, k0, Oj_0, iteraciones, s, Vj, alpha, beta, Xj_n, Oj_n, phi, file, file_2)
+
+file.close()
+file_2.close()
 
 t_f = time.time()
 
