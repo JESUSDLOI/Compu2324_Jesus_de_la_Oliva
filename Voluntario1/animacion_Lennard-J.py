@@ -53,7 +53,11 @@ file_out = "planetas" # Nombre del fichero de salida (sin extensión)
 # Límites de los ejes X e Y
 x_min = -2
 x_max = 12
+<<<<<<< HEAD:Voluntario1/animacion_planetas.py
 y_min = -2 
+=======
+y_min = -2
+>>>>>>> 9dce69c61d1a2c75bcad1e7610ff6a905890be4a:Voluntario1/animacion_Lennard-J.py
 y_max = 12
 
 interval = 1 # Tiempo entre fotogramas en milisegundos
