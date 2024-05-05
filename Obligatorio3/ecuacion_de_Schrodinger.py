@@ -1,15 +1,17 @@
 import numpy as np
 import time
+from numba import jit
+
 
 t_o = time.time()
 
 #Iteraciones
-iteraciones = 10000
+iteraciones = 1000
 
 # Parametros iniciales
-N = 400
+N = 100
 nciclos = N/4
-λ = 0.7
+λ = 0.8
 
 # Generar s, k0, Vj, Φj_0 and alpha
 k0 = 2 * np.pi * nciclos/ N
@@ -25,6 +27,7 @@ Xj_n = np.zeros(N, dtype=complex)
 phi = np.zeros(N)
 
 #Calcular potencial, Vj
+@jit(nopython=True, fastmath=True, cache=True)
 def calc_Vj(N, λ, k0, Vj):
     V2 = np.zeros(N)
     for i in range(N):
@@ -36,6 +39,7 @@ def calc_Vj(N, λ, k0, Vj):
     return Vj
 
 #Función onda inicial
+@jit(nopython=True, fastmath=True, cache=True)
 def onda_inicial(N, k0, Oj_0, phi):
     for i in range(1, N-1):
         Oj_0[i] = np.exp(1j * k0 * i)*np.exp(-8*(4*i-N)**2 / N**2)
@@ -43,24 +47,28 @@ def onda_inicial(N, k0, Oj_0, phi):
     return Oj_0, phi
 
 # Calcular alpha
+@jit(nopython=True, fastmath=True, cache=True)
 def calc_alpha(s, Vj, alpha, N):
     for i in range(N-2, -1, -1):
         alpha[i-1] = -1/((-2 + (2j/s) - Vj[i])+(alpha[i]))
     return alpha
 
 # Calcular beta
+@jit(nopython=True, fastmath=True, cache=True)
 def calc_beta(s, Oj_0, alpha, beta, Vj, N):
     for i in range(N-2, -1, -1):
         beta[i-1] = ((4j*Oj_0[i]/s)-beta[i])/((-2 + 2j/s - Vj[i])+(alpha[i]))
     return beta
 
 # Calcular Xj_n
+@jit(nopython=True, fastmath=True, cache=True)
 def calc_Xj_n(Xj_n, alpha, beta, N):
     for i in range(N-1):
         Xj_n[i+1] = alpha[i]*Xj_n[i] + beta[i]
     return Xj_n
 
 # Calcular Oj_n
+@jit(nopython=True, fastmath=True, cache=True)
 def calc_Oj_n(Xj_n, Oj_n, N, phi):
     for i in range(N):
         Oj_n[i] = Xj_n[i] - Oj_n[i]
@@ -87,7 +95,6 @@ def funcion_onda_temporal(N, k0, Oj_0, iteraciones, s, Vj, alpha, beta, Xj_n, Oj
         Oj_0 = Oj_n
         file.write("\n")
         
-            
         
 file=open('schrodinger_data.dat','w')    
 file_2=open('norma_data.dat','w')

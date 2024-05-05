@@ -4,23 +4,22 @@
 import numpy as np
 import time
 from numba import jit
+from decimal import Decimal, getcontext
 
 #Establecemos el tiempo inicial.
-
 t0 = time.time()
 
+#Establecemos la precisión de los decimales.
+getcontext().prec = 30
+
 #Establecemos los uncrementos del tiempo.
-<<<<<<< HEAD
-h=0.001
-=======
-h=0.0002
->>>>>>> 9dce69c61d1a2c75bcad1e7610ff6a905890be4a
+h = Decimal('0.001')
 
 #Número de iteraciones.
-iteraciones = 1000
+iteraciones = 10000
 
 #Número de iteraciones que se saltan para guardar los datos.
-skip = 10
+skip = 1
 
 #Valor sigma
 sigma = 3.4
@@ -29,183 +28,109 @@ sigma = 3.4
 n = 2
 
 #Tamaño de caja
-l = 10
+l = Decimal('10')
 
 #Interespaciado entre las partículas.
-s = 1.3
+s = Decimal('1.3')
 
 #Posición inicial de las partículas
-<<<<<<< HEAD
-@jit(nopython=True, fastmath=True)
-=======
 #@jit(nopython=True, fastmath=True, cache=True)
->>>>>>> 9dce69c61d1a2c75bcad1e7610ff6a905890be4a
 def posiciones_iniciales(n, l, s):
-    posicion = np.zeros((n, 2))+ 1
+    posicion = np.full((n, 2), Decimal('0')) + Decimal('1')
     for i in range(n-1):
         x = posicion[i][0] + s
         if x > l:
-            posicion[i+1] = [1, posicion[i][1] + s]
+            posicion[i+1] = [Decimal('1'), posicion[i][1] + s]
         else:
             posicion[i+1] = [posicion[i][0] + s, posicion[i][1]]
     return posicion
 
 
 #Condiciónes de contorno periódicas.
-<<<<<<< HEAD
-@jit(nopython=True, fastmath=True)
-=======
 #@jit(nopython=True, fastmath=True, cache=True)
->>>>>>> 9dce69c61d1a2c75bcad1e7610ff6a905890be4a
-def contorno(posicion_th, l):
+def contorno(posiciones, l):
     for i in range(n):
-        x = posicion_th[i][0]
-        y = posicion_th[i][1]
+        x = Decimal(str(posiciones[i][0]))
+        y = Decimal(str(posiciones[i][1]))
         if x > l:
-            x = x % l
+            x = x % Decimal('1')
         if x < 0:
-            x = x % l
+            x = x % Decimal('1')
         if y > l:
-            y = y % l
+            y = y % Decimal('1')
         if y < 0:
-            y = y % l
-        posicion_th[i][0] = x
-        posicion_th[i][1] = y
-    return posicion_th
+            y = y % Decimal('1')
+        posiciones[i][0] = x
+        posiciones[i][1] = y
+    return posiciones
 
 #Función para calcular la distancia entre dos partículas.
-<<<<<<< HEAD
-@jit(nopython=True, fastmath=True)
-=======
 #@jit(nopython=True, fastmath=True, cache=True)
->>>>>>> 9dce69c61d1a2c75bcad1e7610ff6a905890be4a
 def distancia_condiciones(posicion, i, j, l):
-    resta = np.zeros(2)
-    mitad = l/2
+    resta = np.full((2), Decimal('0'))
+    mitad = l / Decimal('2')
     
     resta[0] = posicion[i][0] - posicion[j][0]
     if abs(resta[0]) > mitad:
         resta[0] = -(l - abs(resta[0]))*np.sign(resta[0])
     
     resta[1] = posicion[i][1] - posicion[j][1]
-<<<<<<< HEAD
     if abs(resta[1]) > mitad:
         resta[1] = -(l - abs(resta[1]))*np.sign(resta[1])
     
-    distancia = round(np.sqrt(resta[0]**2 + resta[1]**2), 5)
-    return distancia, resta
-
-#Definimos la función a(t) a partir de la suma de fuerazas que se ejercen sobre cada partícula i.
-@jit(nopython=True, fastmath=True)
-def aceleracion_particulas(n, posicion, a_t, l, E_p_c, a_c):
-=======
-    if abs(resta[1]) > l/2:
-        resta[1] = (l - abs(resta[1]))
+    distancia = resta[0]**Decimal('2') + resta[1]**Decimal('2')
+    distancia = distancia.sqrt()
     
-    distancia = (resta[0]**2 + resta[1]**2)**(0.5)
     return distancia, resta
 
-#Definimos la función a(t) a partir de la suma de fuerazas que se ejercen sobre cada partícula i.
-##@jit(nopython=True, fastmath=True, cache=True)
-def aceleracion_particulas(n, posicion, a_t, l, a_c):
->>>>>>> 9dce69c61d1a2c75bcad1e7610ff6a905890be4a
-    E_p = 0
+#Definimos la función que nos da la acceleración en el tiempo t+h.
+#@jit(nopython=True, fastmath=True)
+def acel_i_th(n, posiciones, a_i, l, E_p_c, a_c):
+    E_p = Decimal('0')
     for i in range(n):
         j = i+1
         while j < n:
-            distancia, direccion = distancia_condiciones(posicion, i, j, l)
+            distancia, direccion = distancia_condiciones(posiciones, i, j, l)
+            versor = direccion/distancia
             if distancia <= 3:
-                aceleracion = (24/distancia**7)*((2/distancia**6) - 1) - a_c
-                versor = direccion/distancia
-                a_t[i] = a_t[i] + (aceleracion * versor)
-                a_t[j] = a_t[j] - (aceleracion * versor)
-                E_p += ((4/distancia**6)*(1/distancia**6 - 1)) - E_p_c + (distancia - 3)*a_c
-            j = j+1             
-    return a_t, E_p
+                aceleracion = (Decimal('24')/distancia**Decimal('7'))*(Decimal('2')/distancia**Decimal('6') - Decimal('1')) - a_c
+                a_i[i] = a_i[i] + aceleracion*versor
+                a_i[j] = a_i[j] - aceleracion*versor
+                E_p += (Decimal('4')/distancia**Decimal('6'))*(Decimal('1')/distancia**Decimal('6') - Decimal('1')) - E_p_c + (distancia - Decimal('3'))*a_c
+            j = j+1
+    return a_i, E_p
+
 
 #Definimos la función w[i].
-<<<<<<< HEAD
-@jit(nopython=True, fastmath=True)
-=======
 #@jit(nopython=True, fastmath=True, cache=True)
->>>>>>> 9dce69c61d1a2c75bcad1e7610ff6a905890be4a
 def w_ih(n, velocidades, a_i, w_i, h):
     for i in range(n):
-        w_i[i] = velocidades[i] + a_i[i]*(h/2)
+        w_i[i] = velocidades[i] + a_i[i]*(h/Decimal('2'))
     return w_i
 
 #Definimos r(t+h) que nos da la nueva posición.
-<<<<<<< HEAD
-@jit(nopython=True, fastmath=True)
+#@jit(nopython=True, fastmath=True)
 def p_th(n, posiciones, w_i, h):
-=======
-#@jit(nopython=True, fastmath=True, cache=True)
-def p_th(n, posicion_th, w_i, h):
->>>>>>> 9dce69c61d1a2c75bcad1e7610ff6a905890be4a
     for i in range(n):
         posiciones[i] = posiciones[i] + w_i[i]*h
     return posiciones
 
-#Definimos la función que nos da la acceleración en el tiempo t+h.
-<<<<<<< HEAD
-@jit(nopython=True, fastmath=True)
-def acel_i_th(n, posicion_th, a_i, l, E_p_c, a_c):
-=======
-##@jit(nopython=True, fastmath=True, cache=True)
-def acel_i_th(n, posicion_th, a_i, a_c, l):
->>>>>>> 9dce69c61d1a2c75bcad1e7610ff6a905890be4a
-    E_p = 0
-    for i in range(n):
-        j = i+1
-        while j < n:
-            distancia, direccion = distancia_condiciones(posicion_th, i, j, l)
-            versor = direccion/distancia
-            if distancia <= 3:
-<<<<<<< HEAD
-                aceleracion = (24/distancia**7)*(2/distancia**6 - 1) - a_c
-                a_i[i] = a_i[i] + aceleracion*versor
-                a_i[j] = a_i[j] - aceleracion*versor
-                E_p += (4/distancia**6)*(1/distancia**6 - 1) - E_p_c + (distancia - 3)*a_c
-=======
-                aceleracion = ((24/distancia**7)*((2/distancia**6) - 1) - a_c)/100
-                versor = direccion/distancia
-                a_i[i] += aceleracion * versor
-                a_i[j] -= aceleracion * versor
-                E_p += (8/distancia**6)*(1/distancia**6 - 1)
->>>>>>> 9dce69c61d1a2c75bcad1e7610ff6a905890be4a
-            j = j+1
-            #file_distancia.write(str(distancia) + "\n")
-    return a_i, E_p
-
-
 #Definimos la función que nos da la nueva velocidad en el tiempo t+h.
-<<<<<<< HEAD
-@jit(nopython=True, fastmath=True)
+#@jit(nopython=True, fastmath=True)
 def velocidad_th(w_i, n, velocidades, a_i_th, h):
-    E_c = 0
+    E_c = Decimal('0')
     for i in range(n):
-        velocidades[i] = w_i[i] + a_i_th[i]*(h/2)
+        velocidades[i] = w_i[i] + a_i_th[i]*(h/Decimal('2'))
         E_c += energia_cinetica(velocidades[i])
     return velocidades, E_c
 
-@jit(nopython=True, fastmath=True)
+#@jit(nopython=True, fastmath=True)
 def energia_cinetica(velocidades):
-    energia_cinetica = 0.5*(velocidades[0]**2 + velocidades[1]**2)
-=======
-#@jit(nopython=True, fastmath=True, cache=True)
-def velocidad_th(w_i, n, v_th, a_i_th, h):
-    E_c = 0
-    for i in range(n):
-        v_th[i]= w_i[i] + a_i_th[i] * (h/2)
-        E_c += energia_cinetica(v_th[i])
-    return v_th, E_c
-
-#@jit(nopython=True, fastmath=True, cache=True)
-def energia_cinetica(v):
-    energia_cinetica = 0.5*np.sum(v**2)
->>>>>>> 9dce69c61d1a2c75bcad1e7610ff6a905890be4a
+    energia_cinetica = Decimal('0.5')*(velocidades[0]**Decimal('2') + velocidades[1]**Decimal('2'))
     return energia_cinetica
 
+
+'''
 #Definimos las velocidades iniciales de las partículas.
 velocidades = np.random.uniform(-0.5, 0.5, (n, 2))*np.sqrt(12)
 
@@ -214,16 +139,13 @@ v_media = np.mean(velocidades)
 
 #Restamos la velocidad media a las velocidades iniciales, para que el sistema conserve la energía.
 velocidades = velocidades - v_media
+'''
 
-<<<<<<< HEAD
-velocidades = np.zeros((n, 2))
+velocidades = np.full((n, 2), Decimal('0'))
 
-@jit(nopython=True, fastmath=True)
-=======
-#@jit(nopython=True, fastmath=True, cache=True)
->>>>>>> 9dce69c61d1a2c75bcad1e7610ff6a905890be4a
+#@jit(nopython=True, fastmath=True)
 def energia_cinetica_inicial(velocidades, n):
-    E_c = 0
+    E_c = Decimal('0')
     for i in range(n):
         E_c += energia_cinetica(velocidades[i])
     return E_c
@@ -233,39 +155,24 @@ def energia_cinetica_inicial(velocidades, n):
 posiciones = posiciones_iniciales(n, l, s)
 posiciones = contorno(posiciones, l)
 E_c = energia_cinetica_inicial(velocidades, n)
-a_t = np.zeros((n, 2))
-<<<<<<< HEAD
+a_i = np.full((n, 2), Decimal('0'))
 #a_c es la aceleración de corte. Para ajustar el potencial de Lennard-Jones.
-a_c = (24/3**7)*(2/3**6 - 1)
+a_c = (Decimal('24')/Decimal('3')**Decimal('7'))*(Decimal('2')/Decimal('3')**Decimal('6') - Decimal('1'))
 #E_p_c es la energía potencial de corte. Para ajustar el potencial de Lennard-Jones.
-E_p_c = (4/3**6)*(1/3**6 - 1)
-a_i, E_p = aceleracion_particulas(n, posiciones, a_t, l, E_p_c, a_c)
-=======
-a_c = (24/3**7)*(2/3**6 - 1)
-a_i, E_p = aceleracion_particulas(n, posiciones, a_t, l, a_c)
->>>>>>> 9dce69c61d1a2c75bcad1e7610ff6a905890be4a
-w_i = np.zeros((n, 2))
+E_p_c = (Decimal('4')/Decimal('3')**Decimal('6'))*(Decimal('1')/Decimal('3')**Decimal('6') - Decimal('1'))
+a_i, E_p = acel_i_th(n, posiciones, a_i, l, E_p_c, a_c)
+w_i = np.full((n, 2), Decimal('0'))
 
 
-<<<<<<< HEAD
 #Calculamos la energía total del sistema.
 energia = E_c + E_p
 
-print("La energía cinética es: ", E_c)
-print("La energía potencial es: ", E_p)
-print("La energía total es: ", energia)
 
-=======
->>>>>>> 9dce69c61d1a2c75bcad1e7610ff6a905890be4a
 # Abrir tres archivos para guardar los datos de las posiciones, velocidades y energía.
 file_posiciones = open('posiciones_part.dat', "w")
 file_velocidades = open('velocidades_part.dat', "w")
 file_aceleraciones = open('aceleraciones_part.dat', "w")
 file_enegia = open('energia_part.dat', "w")
-<<<<<<< HEAD
-=======
-
->>>>>>> 9dce69c61d1a2c75bcad1e7610ff6a905890be4a
 
 
 def guardar_datos(k, n, posiciones, velocidades, energia, skip):
@@ -279,37 +186,21 @@ def guardar_datos(k, n, posiciones, velocidades, energia, skip):
         file_enegia.write(str(energia) + "\n")
 
 # Realizamos el bucle para calcular las posiciones y velocidades de los planetas.
-<<<<<<< HEAD
-def simulacion(n, posiciones, velocidades, a_i, w_i, h, iteraciones, l, E_p, E_c, energia, E_p_c, a_c):
-    
-    for k in range(iteraciones):
-
-        guardar_datos(k, n, posiciones, velocidades, energia)
-        
-=======
-def simulacion(n, posiciones, velocidades, a_i, w_i, h, iteraciones, l, E_p, E_c, energia, skip):
+def simulacion(n, posiciones, velocidades, a_i, w_i, h, iteraciones, l, E_p, E_c, energia, E_p_c, a_c, skip):
     
     for k in range(iteraciones):
 
         guardar_datos(k, n, posiciones, velocidades, energia, skip)
-
->>>>>>> 9dce69c61d1a2c75bcad1e7610ff6a905890be4a
+        
         w_i = w_ih(n, velocidades, a_i, w_i, h)
         posiciones = p_th(n, posiciones, w_i, h)
         posiciones = contorno(posiciones, l)
         a_i, E_p = acel_i_th(n, posiciones, a_i, l, E_p_c, a_c)
         velocidades, E_c = velocidad_th(w_i, n, velocidades, a_i, h)
         energia = E_c + E_p
-        print("La energía cinética es: ", E_c)
-        print("La energía potencial es: ", E_p)
-        print("La energía total es: ", energia)
 
 #Ejecutamos la simulación.
-<<<<<<< HEAD
-simulacion(n, posiciones, velocidades, a_i, w_i, h, iteraciones, l, E_p, E_c, energia, E_p_c, a_c)
-=======
-simulacion(n, posiciones, velocidades, a_i, w_i, h, iteraciones, l, E_p, E_c, energia, skip)
->>>>>>> 9dce69c61d1a2c75bcad1e7610ff6a905890be4a
+simulacion(n, posiciones, velocidades, a_i, w_i, h, iteraciones, l, E_p, E_c, energia, E_p_c, a_c, skip)
     
 # Cerrar los archivos
 file_posiciones.close()
@@ -321,5 +212,7 @@ file_enegia.close()
 t1 = time.time()
 
 tiempo = t1 - t0
+
+print(Decimal('1')/3)
 
 print("El tiempo de ejecución es: ", tiempo, "segundos")
