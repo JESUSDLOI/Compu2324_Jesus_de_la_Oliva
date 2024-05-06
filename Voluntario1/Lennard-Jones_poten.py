@@ -2,28 +2,29 @@
 #Unidades del sistema internacional.
 
 import time
+import random
 from decimal import Decimal, getcontext
 
 #Establecemos el tiempo inicial.
 t0 = time.time()
 
 #Establecemos la precisión de los decimales.
-getcontext().prec = 30
+getcontext().prec = 10
 
 #Establecemos los uncrementos del tiempo.
 h = Decimal('0.001')
 
 #Número de iteraciones.
-iteraciones = 100000
+iteraciones = 10000
 
 #Número de iteraciones que se saltan para guardar los datos.
-skip = 1
+skip = 10
 
 #Valor sigma
 sigma = 3.4
 
 #Pedimos el número de partículas.
-n = 2
+n = 10
 
 #Tamaño de caja
 l = Decimal('10')
@@ -47,39 +48,44 @@ def contorno(posiciones, l):
     for i in range(n):
         x = Decimal(posiciones[i][0])
         y = Decimal(posiciones[i][1])
+        t = float(x)
+        h = float(y)
+        u = float(l)
         if x > l:
-            x = x % l
+            t = t % u
         if x < 0:
-            x = x % l
+            t = t % u
         if y > l:
-            y = y % l
+            h = h % u
         if y < 0:
-            y = y % l
+            h = h % u
+        x = Decimal(t)
+        y = Decimal(h)
         posiciones[i][0] = x
         posiciones[i][1] = y
     return posiciones
 
 #Función para calcular la distancia entre dos partículas.
 def distancia_condiciones(posicion, i, j, l):
-    resta = [Decimal('0'), Decimal('0')]
+    resta = [[Decimal('0'), Decimal('0')], [Decimal('0'), Decimal('0')]]
     mitad = l / Decimal('2')
     
     resta[0] = posicion[i][0] - posicion[j][0]
     if abs(resta[0]) > mitad:
-        resta[0] = -(l - abs(resta[0]))*(-resta[0])/abs(resta[0])
+        resta[0] = -(l - abs(resta[0]))*((resta[0])/abs(resta[0]))
     
     resta[1] = posicion[i][1] - posicion[j][1]
     if abs(resta[1]) > mitad:
-        resta[1] = -(l - abs(resta[1]))*((-resta[1])/abs(resta[1]))
+        resta[1] = -(l - abs(resta[1]))*((resta[1])/abs(resta[1]))
     
     distancia = resta[0]**Decimal('2') + resta[1]**Decimal('2')
     distancia = distancia.sqrt()
-    
     return distancia, resta
 
 #Definimos la función que nos da la acceleración en el tiempo t+h.
 def acel_i_th(n, posiciones, a_i, l, E_p_c, a_c):
     E_p = Decimal('0')
+    a_i = [[Decimal('0'), Decimal('0')] for _ in range(n)]
     for i in range(n):
         j = i+1
         while j < n:
@@ -117,7 +123,10 @@ def energia_cinetica(velocidades):
     energia_cinetica = Decimal('0.5')*(velocidades[0]**Decimal('2') + velocidades[1]**Decimal('2'))
     return energia_cinetica
 
-velocidades = [[Decimal('0'), Decimal('0')] for _ in range(n)]
+velocidades = [[Decimal(str(random.random())), Decimal(str(random.random()))] for _ in range(n)]
+for i in range(n):
+    velocidades[i][0] = Decimal(velocidades[i][0]) - Decimal('0.5')
+    velocidades[i][1] = Decimal(velocidades[i][1]) - Decimal('0.5')
 
 def energia_cinetica_inicial(velocidades, n):
     E_c = Decimal('0')
