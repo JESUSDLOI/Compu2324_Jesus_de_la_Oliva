@@ -16,7 +16,7 @@ getcontext().prec = 30
 h = Decimal('0.001')
 
 #Número de iteraciones.
-iteraciones = 10000
+iteraciones = 100000
 
 #Número de iteraciones que se saltan para guardar los datos.
 skip = 1
