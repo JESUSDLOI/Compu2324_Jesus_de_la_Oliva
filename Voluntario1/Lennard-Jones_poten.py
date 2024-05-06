@@ -24,7 +24,7 @@ skip = 10
 sigma = 3.4
 
 #Pedimos el número de partículas.
-n = 50
+n = 20
 
 #Tamaño de caja
 l = Decimal('10')

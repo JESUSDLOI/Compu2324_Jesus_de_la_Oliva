@@ -21,10 +21,10 @@ skip = 10
 sigma = 3.4
 
 #Pedimos el número de partículas.
-n = 10
+n = 50
 
 #Tamaño de caja
-l = 10
+l = 20
 
 #Interespaciado entre las partículas.
 s = 2
@@ -89,7 +89,7 @@ def acel_i_th(n, posiciones, a_i, l, E_p_c, a_c):
             distancia, direccion = distancia_condiciones(posiciones, i, j, l)
             versor = direccion/distancia
             if distancia <= 3:
-                aceleracion = (2/distancia**7)*(2/distancia**6 - 1) - a_c
+                aceleracion = (24/distancia**7)*(2/distancia**6 - 1) - a_c
                 a_i[i] = a_i[i] + aceleracion*versor
                 a_i[j] = a_i[j] - aceleracion*versor
                 E_p += (4/distancia**6)*(1/distancia**6 - 1) - E_p_c + (distancia - 3)*a_c
@@ -127,14 +127,7 @@ def energia_cinetica(velocidades):
 
 
 #Definimos las velocidades iniciales de las partículas.
-velocidades = np.random.uniform(-0.5, 0.5, (n, 2))*np.sqrt(12)
-
-#Calculamos la velodad media.
-v_media = np.mean(velocidades)
-
-#Restamos la velocidad media a las velocidades iniciales, para que el sistema conserve la energía.
-velocidades = velocidades - v_media
-
+velocidades = np.random.uniform(-0.5, 0.5, (n, 2))
 
 @jit(nopython=True, fastmath=True, cache=True)
 def energia_cinetica_inicial(velocidades, n):
@@ -168,7 +161,6 @@ file_energia = open('energia_part.dat', "w")
 
 def guardar_datos(k, posiciones, energia, skip):
     if k % skip == 0:
-        posiciones = np.array([posiciones])
         np.savetxt(file_posiciones, posiciones, delimiter=",")
         file_posiciones.write("\n")
         file_energia.write(str(energia) + "\n")
@@ -180,7 +172,7 @@ def simulacion(n, posiciones, velocidades, a_i, w_i, h, iteraciones, l, E_p, E_c
     
     for k in range(iteraciones):
 
-        guardar_datos(k, n, posiciones, skip)
+        guardar_datos(k, posiciones, energia, skip)
         
         w_i = w_ih(n, velocidades, a_i, w_i, h)
         posiciones = p_th(n, posiciones, w_i, h)
