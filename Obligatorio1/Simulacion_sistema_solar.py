@@ -10,10 +10,13 @@ from numba import jit
 t0 = time.time()
 
 #Establecemos los uncrementos del tiempo.
-h=0.0001
+h=0.001
 
 #Número de iteraciones.
-iteraciones = 80000
+iteraciones = 800000
+
+#Número de iteraciones cada las que se guardan los datos.
+skip = 100
 
 #Pedimos el número de planetas con los que se ejcutará la simulación.
 n = 9
@@ -22,7 +25,7 @@ n = 9
 G = 6.674*10**(-11) 
 
 #Distancia al Sol de los planetas m.
-r_sol = np.array([0, 0])
+r_sol = np.array([-8*10**8, 0])
 r_mrcurio = np.array([5.791*10**10, 0])
 r_venus = np.array([1.082*10**11, 0])
 r_tierra = np.array([1.496*10**11, 0])
@@ -48,7 +51,7 @@ m_pluton = 1.3*10**22
 masas = np.array([m_sol, m_mercurio, m_venus, m_tierra, m_marte, m_jupiter, m_saturno, m_urano, m_neptuno, m_pluton])
 
 #Vector de velocidades iniciales de los planetas m/s.
-v_sol = np.array([0, 0])
+v_sol = np.array([0, -15])
 v_mercurio = np.array([0, 4.7*10**4])
 v_venus = np.array([0, 3.5*10**4])
 v_tierra = np.array([0, 3*10**4])
@@ -60,15 +63,15 @@ v_neptuno = np.array([0, 5.4*10**3])
 v_pluton = np.array([0, 4.7*10**3])
 velocidades = np.array([v_sol, v_mercurio, v_venus, v_tierra, v_marte, v_jupiter, v_saturno, v_urano, v_neptuno, v_pluton])
 
-@jit(nopython=True)
+@jit(nopython=True, fastmath=True)
 def v_esc(velocidades, G, r_tierra, m_sol, n):
     #Reescalamiento de las unidades de los datos.
     v_rees = np.zeros((n, 2))
     for i in range(n):
-        v_rees[i][1] = velocidades[i][1]*np.sqrt(r_tierra[0]/(G*m_sol)/1.98)
+        v_rees[i][1] = velocidades[i][1]*np.sqrt(r_tierra[0]/(G*m_sol))
     return v_rees
 
-@jit(nopython=True)
+@jit(nopython=True, fastmath=True)
 def r_esc(radios, r_tierra, n):
     #Posiciones reescaladas.
     r_rees = np.zeros((n, 2))
@@ -76,7 +79,7 @@ def r_esc(radios, r_tierra, n):
         r_rees[i][0] = radios[i][0]/r_tierra[0]
     return r_rees
         
-@jit(nopython=True)        
+@jit(nopython=True, fastmath=True)        
 def m_esc(masas, m_sol, n):
     #Reescalamos las masas.
     m_rees = np.zeros(n)
@@ -86,55 +89,48 @@ def m_esc(masas, m_sol, n):
 
 
 #Definimos la función a(t) a partir de la suma de fuerazas que se ejercen sobre cada partícula i.
-@jit(nopython=True)
+@jit(nopython=True, fastmath=True)
 def aceleracion_por_planeta(n, r_rees, m_rees, a_t):
+    a_t = np.zeros((n, 2))
     for i in range(n):
-        for j in range(n):
-            if i != j:
-                distancia = (r_rees[i] - r_rees[j])
-                norma = np.linalg.norm(distancia)
-                a_t[i] += m_rees[j]*distancia/(norma)**3  
+        j = i + 1
+        while j < n:
+            distancia = (r_rees[i] - r_rees[j])
+            norma = np.linalg.norm(distancia)
+            a_t[i] += m_rees[j]*distancia/(norma)**3
+            a_t[j] -= m_rees[i]*distancia/(norma)**3
+            j += 1
     return -a_t
 
 #Definimos la función w[i].
-@jit(nopython=True)
+@jit(nopython=True, fastmath=True)
 def w_ih(n, v_rees, a_i, w_i, h):
     for i in range(n):
         w_i[i] = v_rees[i] + a_i[i]*(h/2)
     return w_i
 
 #Definimos r(t+h) que nos da la nueva posición.
-@jit(nopython=True)
+@jit(nopython=True, fastmath=True)
 def r_th(n, r_rees_th, w_i, h):
     for i in range(n):
         r_rees_th[i] = r_rees_th[i] + w_i[i]*h
     return r_rees_th
 
-#Definimos la función que nos da la acceleración en el tiempo t+h.
-@jit(nopython=True)
-def acel_i_th(n, r_rees_th, m_rees, a_i_th):
-    for i in range(n):
-        for j in range(n):
-            if i != j:
-                 distancia = (r_rees_th[i] - r_rees_th[j])
-                 norma = np.linalg.norm(distancia)
-                 a_i_th[i] += m_rees[j]*distancia/(norma)**3
-    return -a_i_th 
-
 
 #Definimos la función que nos da la nueva velocidad en el tiempo t+h.
-@jit(nopython=True)
+@jit(nopython=True, fastmath=True)
 def velocidad_th(w_i, n, v_th, a_i_th, h):
     for i in range(n):
         v_th[i]= w_i[i] + a_i_th[i]*(h/2)
     return v_th
 
 #Calcular periodo de las órbitas.
-@jit(nopython=True)
+@jit(nopython=True, fastmath=True)
 def periodo_orbital(r_rees, periodo, k):
         for i in range(n):     
             if r_rees[i][1] < 0 and periodo[i] == 0:
-                periodo[i] += k*2
+                if r_rees[i][0] > 0:
+                    periodo[i] += k
 
 
 #Inicializamos las variables que se utilizarán en el bucle.
@@ -152,23 +148,23 @@ file_posiciones = open('posiciones.dat', "w")
 file_velocidades = open('velocidades.dat', "w")
 
 
-def guardar_datos(k, n, r_rees, v_rees):
-    if k % (n*100) == 0:
+def guardar_datos(k, n, r_rees, v_rees, skip):
+    if k % (skip) == 0:
         np.savetxt(file_posiciones, r_rees, delimiter=",")
         np.savetxt(file_velocidades, v_rees, delimiter=",")
         file_posiciones.write("\n")
         file_velocidades.write("\n")
 
 # Realizamos el bucle para calcular las posiciones y velocidades de los planetas.
-def simulacion(n, r_rees, v_rees, a_i, w_i, h, iteraciones):
+def simulacion(n, r_rees, v_rees, a_i, w_i, h, iteraciones, skip):
     
     for k in range(iteraciones):
 
-        guardar_datos(k, n, r_rees, v_rees)
+        guardar_datos(k, n, r_rees, v_rees, skip)
 
         w_i = w_ih(n, v_rees, a_i, w_i, h)
         r_rees_th = r_th(n, r_rees, w_i, h)
-        a_i_th = acel_i_th(n, r_rees_th, m_rees, a_i)
+        a_i_th = aceleracion_por_planeta(n, r_rees_th, m_rees, a_i)
         v_th = velocidad_th(w_i, n, v_rees, a_i_th, h)
         r_rees = r_rees_th
         v_rees = v_th
@@ -179,9 +175,9 @@ def simulacion(n, r_rees, v_rees, a_i, w_i, h, iteraciones):
         
 
 #Ejecutamos la simulación.
-simulacion(n, r_rees, v_rees, a_i, w_i, h, iteraciones)
+simulacion(n, r_rees, v_rees, a_i, w_i, h, iteraciones, skip)
 
-@jit(nopython=True)
+@jit(nopython=True, fastmath=True)
 def mostrar_datos_periodo(n, periodo):
     labels = ['Sol','Mercurio', 'Venus', 'Tierra', 'Marte', 'Jupiter', 'Saturno', 'Urano', 'Neptuno', 'Pluton']
     for i in range(n):
