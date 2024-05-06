@@ -36,9 +36,9 @@ def posiciones_iniciales(n, l, s):
     for i in range(n-1):
         x = posicion[i][0] + s
         if x > l:
-            posicion[i+1] = np.array(1, posicion[i][1] + s)
+            posicion[i+1] = np.array([1, posicion[i][1] + s])
         else:
-            posicion[i+1] = np.array(posicion[i][0] + s, posicion[i][1])
+            posicion[i+1] = np.array([posicion[i][0] + s, posicion[i][1]])
     return posicion
 
 
@@ -168,6 +168,7 @@ file_energia = open('energia_part.dat', "w")
 
 def guardar_datos(k, posiciones, energia, skip):
     if k % skip == 0:
+        posiciones = np.array([posiciones])
         np.savetxt(file_posiciones, posiciones, delimiter=",")
         file_posiciones.write("\n")
         file_energia.write(str(energia) + "\n")
