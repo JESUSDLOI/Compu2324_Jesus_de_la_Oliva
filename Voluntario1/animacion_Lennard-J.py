@@ -48,13 +48,13 @@ import numpy as np
 # Parámetros
 # ========================================
 file_in = "posiciones_part.dat" # Nombre del fichero de datos
-file_out = "planetas" # Nombre del fichero de salida (sin extensión)
+file_out = "Lennard-Jones_pot" # Nombre del fichero de salida (sin extensión)
 
 # Límites de los ejes X e Y
-x_min = -2
-x_max = 12
-y_min = -2 
-y_max = 12
+x_min = 0
+x_max = 10
+y_min = 0 
+y_max = 10
 
 interval = 1 # Tiempo entre fotogramas en milisegundos
 show_trail = False # Muestra la "estela" del planeta
@@ -66,7 +66,7 @@ dpi = 75 # Calidad del vídeo de salida (dots per inch)
 # Radio del planeta, en las mismas unidades que la posición
 # Puede ser un número (el radio de todos los planetas) o una lista con
 # el radio de cada uno
-planet_radius = 0.1
+planet_radius = 0.5
 #planet_radius = [0.5, 0.7, 1.1]
 
 
@@ -113,6 +113,9 @@ fig, ax = plt.subplots()
 ax.axis("equal")  # Misma escala para ejes X e Y
 ax.set_xlim(x_min, x_max)
 ax.set_ylim(y_min, y_max)
+
+# Dibuja los límites de la caja
+ax.plot([x_min, x_max, x_max, x_min, x_min], [y_min, y_min, y_max, y_max, y_min], 'k-')
 
 # Si solo se ha dado un radio para todos los planetas, conviértelo a una
 # lista con todos los elementos iguales

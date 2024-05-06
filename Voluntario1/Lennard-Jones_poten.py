@@ -24,13 +24,13 @@ skip = 10
 sigma = 3.4
 
 #Pedimos el número de partículas.
-n = 10
+n = 50
 
 #Tamaño de caja
 l = Decimal('10')
 
 #Interespaciado entre las partículas.
-s = Decimal('2')
+s = Decimal('1.1')
 
 #Posición inicial de las partículas
 def posiciones_iniciales(n, l, s):
@@ -192,6 +192,6 @@ t1 = time.time()
 
 tiempo = t1 - t0
 
-print(Decimal('1')/3)
+
 
 print("El tiempo de ejecución es: ", tiempo, "segundos")
