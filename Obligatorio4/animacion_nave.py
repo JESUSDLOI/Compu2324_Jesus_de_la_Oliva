@@ -47,13 +47,13 @@ import numpy as np
 
 # Parámetros
 # ========================================
-file_in = "posicion_nave_h_ajus.dat" # Nombre del fichero de datos
+file_in = "posicion_nave.dat" # Nombre del fichero de datos
 file_out = "Nave" # Nombre del fichero de salida (sin extensión)
 
 # Límites de los ejes X e Y
-x_min = -0.5
+x_min = -1
 x_max = 1.5
-y_min = -1.5 
+y_min = -1 
 y_max = 1.5
 
 interval = 1 # Tiempo entre fotogramas en milisegundos
@@ -66,7 +66,7 @@ dpi = 150 # Calidad del vídeo de salida (dots per inch)
 # Radio del planeta, en las mismas unidades que la posición
 # Puede ser un número (el radio de todos los planetas) o una lista con
 # el radio de cada uno
-planet_radius = 0.01
+planet_radius = 0.001
 #planet_radius = [0.5, 0.7, 1.1]
 
 
