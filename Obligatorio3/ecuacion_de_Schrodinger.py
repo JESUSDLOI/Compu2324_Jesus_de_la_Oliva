@@ -11,7 +11,7 @@ iteraciones = 10000
 # Parametros iniciales
 N = 400
 nciclos = N/4
-lamb = 1.2
+lamb = 0.7
 
 # Generar s, k0, Vj, Φj_0 and alpha
 k0 = 2 * np.pi * nciclos/ N

@@ -13,7 +13,7 @@ t0 = time.time()
 h=0.001
 
 #Número de iteraciones.
-iteraciones = 800000
+iteraciones = 80000
 
 #Número de iteraciones cada las que se guardan los datos.
 skip = 100

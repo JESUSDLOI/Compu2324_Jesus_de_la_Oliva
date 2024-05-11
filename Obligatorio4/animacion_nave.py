@@ -47,7 +47,7 @@ import numpy as np
 
 # Parámetros
 # ========================================
-file_in = "posicion_nave.dat" # Nombre del fichero de datos
+file_in = "posicion_nave_h_ajus.dat" # Nombre del fichero de datos
 file_out = "Nave" # Nombre del fichero de salida (sin extensión)
 
 # Límites de los ejes X e Y
