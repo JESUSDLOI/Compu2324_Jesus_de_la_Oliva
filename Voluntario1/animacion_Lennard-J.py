@@ -47,14 +47,14 @@ import numpy as np
 
 # Parámetros
 # ========================================
-file_in = "posiciones_200part.dat" # Nombre del fichero de datos
+file_in = "posiciones_part.dat" # Nombre del fichero de datos
 file_out = "Lennard-Jones_pot" # Nombre del fichero de salida (sin extensión)
 
 # Límites de los ejes X e Y
 x_min = 0
-x_max = 20
+x_max = 10
 y_min = 0 
-y_max = 20
+y_max = 10
 
 interval = 1 # Tiempo entre fotogramas en milisegundos
 show_trail = False # Muestra la "estela" del planeta

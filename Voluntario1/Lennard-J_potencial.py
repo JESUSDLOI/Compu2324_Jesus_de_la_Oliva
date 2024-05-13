@@ -15,19 +15,19 @@ h = 0.001
 iteraciones = 100000
 
 #Número de iteraciones que se saltan para guardar los datos.
-skip = 1
+skip = 10
 
 #Valor sigma
 sigma = 3.4
 
 #Pedimos el número de partículas.
-n = 30
+n = 20
 
 #Tamaño de caja
 l = 10
 
 #Interespaciado entre las partículas.
-s = 1
+s = 2
 
 #Posición inicial de las partículas
 @jit(nopython=True, fastmath=True, cache=True)
@@ -127,7 +127,11 @@ def energia_cinetica(velocidades):
 
 
 #Definimos las velocidades iniciales de las partículas.
-velocidades = np.random.uniform(-0.5, 0.5, (n, 2))
+velocidades = np.zeros((n, 2))
+for i in range(n):
+    velocidades[i][0] = 2*np.random.rand() - 1
+    velocidades[i][1] = np.random.choice([-1, 1])*np.sqrt(1 - velocidades[i][0]**2)
+
 
 @jit(nopython=True, fastmath=True, cache=True)
 def energia_cinetica_inicial(velocidades, n):
@@ -159,26 +163,27 @@ file_posiciones = open('posiciones_part.dat', "w")
 file_energia = open('energia_part.dat', "w")
 file_energia_cinetica = open('energia_cinetica.dat', "w")
 file_energia_potencial = open('energia_potencial.dat', "w")
+file_velocidades = open('velocidades_part.dat', "w")
 
 
-def guardar_datos(k, posiciones, energia, skip, E_c, E_p):
+def guardar_datos(k, posiciones, energia, skip, E_c, E_p, mod_velocidades):
     if k % skip == 0:
         np.savetxt(file_posiciones, posiciones, delimiter=",")
         file_posiciones.write("\n")
         file_energia_cinetica.write(str(E_c) + "\n")
         file_energia_potencial.write(str(E_p) + "\n")
         file_energia.write(str(energia) + "\n")
-
+        np.savetxt(file_velocidades, velocidades, delimiter=",")
 
 
 # Realizamos el bucle para calcular las posiciones y velocidades de los planetas.
 def simulacion(n, posiciones, velocidades, a_i, w_i, h, iteraciones, l, E_p, E_c, energia, E_p_c, a_c, skip):
     E_c_total = 0
     E_p_total = 0
-    punto_estable = 10000
+    T = 0
     for k in range(iteraciones):
 
-        guardar_datos(k, posiciones, energia, skip, E_c, E_p)
+        guardar_datos(k, posiciones, energia, skip, E_c, E_p, velocidades)
         
         w_i = w_ih(n, velocidades, a_i, w_i, h)
         posiciones = p_th(n, posiciones, w_i, h)
@@ -186,13 +191,17 @@ def simulacion(n, posiciones, velocidades, a_i, w_i, h, iteraciones, l, E_p, E_c
         a_i, E_p = acel_i_th(n, posiciones, a_i, l, E_p_c, a_c)
         velocidades, E_c = velocidad_th(w_i, n, velocidades, a_i, h)
         energia = E_c + E_p
-        if k > punto_estable:
-            E_c_total += E_c 
-            E_p_total += E_p
-    E_c_total = E_c_total/(iteraciones - punto_estable)
-    E_p_total = E_p_total/(iteraciones - punto_estable)
+
+        E_c_total += E_c 
+        E_p_total += E_p
+
+    E_c_total = E_c_total/(iteraciones)
+    E_p_total = E_p_total/(iteraciones)
     print("Energía cinética promedio: ", E_c_total)
     print("Energía potencial promedio: ", E_p_total)
+    T = 2 * E_c_total/(iteraciones)
+    print("Temperatura promedio: ", T)
+    
 #Ejecutamos la simulación.
 simulacion(n, posiciones, velocidades, a_i, w_i, h, iteraciones, l, E_p, E_c, energia, E_p_c, a_c, skip)
     
