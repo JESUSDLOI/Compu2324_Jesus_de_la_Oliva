@@ -8,14 +8,17 @@ from numba import jit
 #Establecemos el tiempo inicial.
 t0 = time.time()
 
+#Número de simulaciones.
+simulaciones = 5
+
 #Establecemos los uncrementos del tiempo.
 h = 0.001
 
 #Número de iteraciones.
-iteraciones = 100000
+iteraciones = 30000
 
 #Número de iteraciones que se saltan para guardar los datos.
-skip = 10
+skip = 1
 
 #Valor sigma
 sigma = 3.4
@@ -27,10 +30,10 @@ n = 20
 l = 10
 
 #Interespaciado entre las partículas.
-s = 2
+s = 1
 
 #Posición inicial de las partículas
-@jit(nopython=True, fastmath=True, cache=True)
+@jit(nopython=True, fastmath=True)
 def posiciones_iniciales(n, l, s):
     posicion = np.zeros((n, 2)) + 1
     for i in range(n-1):
@@ -43,25 +46,30 @@ def posiciones_iniciales(n, l, s):
 
 
 #Condiciónes de contorno periódicas.
-@jit(nopython=True, fastmath=True, cache=True)
-def contorno(posiciones, l):
+@jit(nopython=True, fastmath=True)
+def contorno(posiciones, l, n, velocidades):
+    momento = np.zeros((n, 2))
     for i in range(n):
         x = posiciones[i][0]
         y = posiciones[i][1]
         if x > l:
             x = x % l
+            momento[i][0] = velocidades[i][0]
         if x < 0:
             x = x % l
+            momento[i][0] = velocidades[i][0]
         if y > l:
             y = y % l
+            momento[i][1] = velocidades[i][1]
         if y < 0:
             y = y % l
+            momento[i][1] = velocidades[i][1]
         posiciones[i][0] = x
         posiciones[i][1] = y
-    return posiciones
+    return posiciones, 2*momento
 
 #Función para calcular la distancia entre dos partículas.
-@jit(nopython=True, fastmath=True, cache=True)
+@jit(nopython=True, fastmath=True)
 def distancia_condiciones(posicion, i, j, l):
     resta = np.zeros(2)
     mitad = l / 2
@@ -79,7 +87,7 @@ def distancia_condiciones(posicion, i, j, l):
     return distancia, resta
 
 #Definimos la función que nos da la acceleración en el tiempo t+h.
-@jit(nopython=True, fastmath=True, cache=True)
+@jit(nopython=True, fastmath=True)
 def acel_i_th(n, posiciones, a_i, l, E_p_c, a_c):
     E_p = 0
     a_i = np.zeros((n, 2))
@@ -98,21 +106,21 @@ def acel_i_th(n, posiciones, a_i, l, E_p_c, a_c):
 
 
 #Definimos la función w[i].
-@jit(nopython=True, fastmath=True, cache=True)
+@jit(nopython=True, fastmath=True)
 def w_ih(n, velocidades, a_i, w_i, h):
     for i in range(n):
         w_i[i] = velocidades[i] + a_i[i]*(h/2)
     return w_i
 
 #Definimos r(t+h) que nos da la nueva posición.
-@jit(nopython=True, fastmath=True, cache=True)
+@jit(nopython=True, fastmath=True)
 def p_th(n, posiciones, w_i, h):
     for i in range(n):
         posiciones[i] = posiciones[i] + w_i[i]*h
     return posiciones
 
 #Definimos la función que nos da la nueva velocidad en el tiempo t+h.
-@jit(nopython=True, fastmath=True, cache=True)
+@jit(nopython=True, fastmath=True)
 def velocidad_th(w_i, n, velocidades, a_i_th, h):
     E_c = 0
     for i in range(n):
@@ -120,20 +128,13 @@ def velocidad_th(w_i, n, velocidades, a_i_th, h):
         E_c += energia_cinetica(velocidades[i])
     return velocidades, E_c
 
-@jit(nopython=True, fastmath=True, cache=True)
+@jit(nopython=True, fastmath=True)
 def energia_cinetica(velocidades):
     energia_cinetica = (0.5)*(velocidades[0]**2 + velocidades[1]**2)
     return energia_cinetica
 
 
-#Definimos las velocidades iniciales de las partículas.
-velocidades = np.zeros((n, 2))
-for i in range(n):
-    velocidades[i][0] = 2*np.random.rand() - 1
-    velocidades[i][1] = np.random.choice([-1, 1])*np.sqrt(1 - velocidades[i][0]**2)
-
-
-@jit(nopython=True, fastmath=True, cache=True)
+@jit(nopython=True, fastmath=True)
 def energia_cinetica_inicial(velocidades, n):
     E_c = 0
     for i in range(n):
@@ -141,32 +142,7 @@ def energia_cinetica_inicial(velocidades, n):
     return E_c
 
 
-#Inicializamos las variables que se utilizarán en el bucle.
-posiciones = posiciones_iniciales(n, l, s)
-posiciones = contorno(posiciones, l)
-E_c = energia_cinetica_inicial(velocidades, n)
-a_i = np.zeros((n, 2))
-#a_c es la aceleración de corte. Para ajustar el potencial de Lennard-Jones.
-a_c = (2/3**7)*(2/3**6 - 1)
-#E_p_c es la energía potencial de corte. Para ajustar el potencial de Lennard-Jones.
-E_p_c = (4/3**6)*(1/3**6 - 1)
-a_i, E_p = acel_i_th(n, posiciones, a_i, l, E_p_c, a_c)
-w_i = np.zeros((n, 2))
-
-
-#Calculamos la energía total del sistema.
-energia = E_c + E_p
-
-
-# Abrir tres archivos para guardar los datos de las posiciones, velocidades y energía.
-file_posiciones = open('posiciones_part.dat', "w")
-file_energia = open('energia_part.dat', "w")
-file_energia_cinetica = open('energia_cinetica.dat', "w")
-file_energia_potencial = open('energia_potencial.dat', "w")
-file_velocidades = open('velocidades_part.dat', "w")
-
-
-def guardar_datos(k, posiciones, energia, skip, E_c, E_p, mod_velocidades):
+def guardar_datos(k, posiciones, energia, skip, E_c, E_p, velocidades, presion):
     if k % skip == 0:
         np.savetxt(file_posiciones, posiciones, delimiter=",")
         file_posiciones.write("\n")
@@ -174,40 +150,108 @@ def guardar_datos(k, posiciones, energia, skip, E_c, E_p, mod_velocidades):
         file_energia_potencial.write(str(E_p) + "\n")
         file_energia.write(str(energia) + "\n")
         np.savetxt(file_velocidades, velocidades, delimiter=",")
+        file_presion.write(str(presion) + "\n")
+        
 
 
 # Realizamos el bucle para calcular las posiciones y velocidades de los planetas.
-def simulacion(n, posiciones, velocidades, a_i, w_i, h, iteraciones, l, E_p, E_c, energia, E_p_c, a_c, skip):
+def simulacion(n, posiciones, velocidades, a_i, w_i, h, iteraciones, l, E_p, E_c, energia, E_p_c, a_c, skip, momento):
     E_c_total = 0
     E_p_total = 0
     T = 0
+    presion_media = 0
+    presion1 = np.zeros((n, 2))
+    presion2 = np.zeros((n, 2))
+    presion = 0
     for k in range(iteraciones):
 
-        guardar_datos(k, posiciones, energia, skip, E_c, E_p, velocidades)
+        guardar_datos(k, posiciones, energia, skip, E_c, E_p, velocidades, presion)
+        
+        #Calculamos la presión antes de actualizar las posiciones.
+        presion1 = momento
         
         w_i = w_ih(n, velocidades, a_i, w_i, h)
         posiciones = p_th(n, posiciones, w_i, h)
-        posiciones = contorno(posiciones, l)
+        posiciones, momento = contorno(posiciones, l, n, velocidades)
         a_i, E_p = acel_i_th(n, posiciones, a_i, l, E_p_c, a_c)
         velocidades, E_c = velocidad_th(w_i, n, velocidades, a_i, h)
         energia = E_c + E_p
+        
+        #Calculamos la presión después de actualizar las posiciones.
+        presion2 = momento
 
         E_c_total += E_c 
         E_p_total += E_p
 
+        fuerza = (presion2 - presion1) / (h)
+        #Calculamos la presión.
+        presion = np.sum(abs(fuerza)) / (4*l)
+        
+        presion_media += presion
+        
     E_c_total = E_c_total/(iteraciones)
     E_p_total = E_p_total/(iteraciones)
     print("Energía cinética promedio: ", E_c_total)
     print("Energía potencial promedio: ", E_p_total)
-    T = 2 * E_c_total/(iteraciones)
+    T = E_c_total 
     print("Temperatura promedio: ", T)
+    presion_media = presion_media/(iteraciones)
+    print("Presión promedio: ", presion_media)
+    file_presion_temp.write(str(presion_media) + "," + str(T) + "\n")
     
-#Ejecutamos la simulación.
-simulacion(n, posiciones, velocidades, a_i, w_i, h, iteraciones, l, E_p, E_c, energia, E_p_c, a_c, skip)
     
-# Cerrar los archivos
-file_posiciones.close()
-file_energia.close()
+    
+file_presion_temp = open('presion_temp.dat', "w")  
+    
+#Bucle para realizar las simulaciones.
+for z in range(simulaciones):   
+    
+    # Abrir tres archivos para guardar los datos de las posiciones, velocidades y energía.
+    file_posiciones = open('posiciones_part' + str(z) + '.dat', "w")
+    file_energia = open('energia_part' + str(z) + '.dat', "w")
+    file_energia_cinetica = open('energia_cinetica' + str(z) + '.dat', "w")
+    file_energia_potencial = open('energia_potencial' + str(z) + '.dat', "w")
+    file_velocidades = open('velocidades_part' + str(z) + '.dat', "w")
+    file_presion = open('presion' + str(z) + '.dat', "w")
+    
+    
+    
+    #Inicializamos las variables que se utilizarán en el bucle.
+    #Definimos las velocidades iniciales de las partículas.
+    velocidades = np.zeros((n, 2))
+    for i in range(n):
+        velocidades[i][0] = (2*np.random.rand() - 1) 
+        velocidades[i][1] = np.random.choice([-1, 1])*np.sqrt(1 - velocidades[i][0]**2)
+
+    #Aumentamos la velocidad de las partículas según la simulación
+    velocidades = np.array(velocidades) * z
+        
+    posiciones = posiciones_iniciales(n, l, s)
+    posiciones, momento = contorno(posiciones, l, n, velocidades)
+    E_c = energia_cinetica_inicial(velocidades, n)
+    a_i = np.zeros((n, 2))
+    #a_c es la aceleración de corte. Para ajustar el potencial de Lennard-Jones.
+    a_c = (2/3**7)*(2/3**6 - 1)
+    #E_p_c es la energía potencial de corte. Para ajustar el potencial de Lennard-Jones.
+    E_p_c = (4/3**6)*(1/3**6 - 1)
+    a_i, E_p = acel_i_th(n, posiciones, a_i, l, E_p_c, a_c)
+    w_i = np.zeros((n, 2))
+
+
+    #Calculamos la energía total del sistema.
+    energia = E_c + E_p    
+    #Ejecutamos la simulación.
+    simulacion(n, posiciones, velocidades, a_i, w_i, h, iteraciones, l, E_p, E_c, energia, E_p_c, a_c, skip, momento)
+    # Cerrar los archivos
+    file_posiciones.close()
+    file_energia.close()
+    file_energia_cinetica.close()
+    file_energia_potencial.close()
+    file_velocidades.close()
+    file_presion.close()
+    
+file_presion_temp.close()
+
 
 #Tiempo final.
 t1 = time.time()
