@@ -9,7 +9,7 @@ from numba import jit
 t0 = time.time()
 
 #Número de simulaciones.
-simulaciones = 5
+simulaciones = 1
 
 #Establecemos los uncrementos del tiempo.
 h = 0.001
@@ -24,7 +24,7 @@ skip = 1
 sigma = 3.4
 
 #Pedimos el número de partículas.
-n = 20
+n = 40
 
 #Tamaño de caja
 l = 10
@@ -32,20 +32,65 @@ l = 10
 #Interespaciado entre las partículas.
 s = 1
 
-#Posición inicial de las partículas
+#Variable para saber si las partículas se encuentran en un panal.
+panal = True
+
+#Reescalamiento de velocidades en tiempos específicos.
+REESCALAMIENTO = True
+
+#Temperatura crítica.
+Temperatura_critica = False
+
+if Temperatura_critica == True:
+    REESCALAMIENTO = False
+
+#Disposición inicial de las partículas
 @jit(nopython=True, fastmath=True)
-def posiciones_iniciales(n, l, s):
+def posiciones_iniciales(n, l, s, panal):
     posicion = np.zeros((n, 2)) + 1
-    for i in range(n-1):
-        x = posicion[i][0] + s
-        if x > l:
-            posicion[i+1] = np.array([1, posicion[i][1] + s])
-        else:
-            posicion[i+1] = np.array([posicion[i][0] + s, posicion[i][1]])
+    #Comprobamos si las partículas se encuentran en un panal.
+    if panal == True:
+        fila = 0
+        paso = 0
+        lado = (s**2 - (s/2)**2)**0.5
+        for i in range(n-1):
+            if paso % 2 == 0:
+                paso += 1
+                x = posicion[i][0] + 2*s
+                if x > l:
+                    fila += 1
+                    if fila % 2 == 0:
+                        paso = 0
+                        posicion[i+1] = np.array([1, posicion[i][1] + lado])
+                    else:
+                        posicion[i+1] = np.array([(1+s/2), posicion[i][1] + lado])
+                else:
+                    posicion[i+1] = np.array([posicion[i][0] + 2*s, posicion[i][1]])
+                
+            else:
+                paso += 1
+                x = posicion[i][0] + s
+                if x > l:
+                    fila += 1
+                    if fila % 2 == 0:
+                        paso = 0
+                        posicion[i+1] = np.array([1, posicion[i][1] + lado])
+                    else:
+                        posicion[i+1] = np.array([(1+s/2), posicion[i][1] + lado])
+                else:
+                    posicion[i+1] = np.array([posicion[i][0] + s, posicion[i][1]])
+                    
+    #Si las partículas no se encuentran en un panal, se disponen en una cuadrícula.               
+    else:   
+        for i in range(n-1):
+            x = posicion[i][0] + s
+            if x > l:
+                posicion[i+1] = np.array([1, posicion[i][1] + s])
+            else:
+                posicion[i+1] = np.array([posicion[i][0] + s, posicion[i][1]])
     return posicion
 
-
-#Condiciónes de contorno periódicas.
+#Condiciónes de contorno periódicas. Y calculamos el momento transferido a la caja.
 @jit(nopython=True, fastmath=True)
 def contorno(posiciones, l, n, velocidades):
     momento = np.zeros((n, 2))
@@ -128,12 +173,13 @@ def velocidad_th(w_i, n, velocidades, a_i_th, h):
         E_c += energia_cinetica(velocidades[i])
     return velocidades, E_c
 
+#Definimos la energía cinética.
 @jit(nopython=True, fastmath=True)
 def energia_cinetica(velocidades):
     energia_cinetica = (0.5)*(velocidades[0]**2 + velocidades[1]**2)
     return energia_cinetica
 
-
+#Definimos la energía cinética de cada partícula.
 @jit(nopython=True, fastmath=True)
 def energia_cinetica_inicial(velocidades, n):
     E_c = 0
@@ -141,7 +187,7 @@ def energia_cinetica_inicial(velocidades, n):
         E_c += energia_cinetica(velocidades[i])
     return E_c
 
-
+#Definimos la función que escribirá los datos en los archivos.
 def guardar_datos(k, posiciones, energia, skip, E_c, E_p, velocidades, presion):
     if k % skip == 0:
         np.savetxt(file_posiciones, posiciones, delimiter=",")
@@ -154,8 +200,8 @@ def guardar_datos(k, posiciones, energia, skip, E_c, E_p, velocidades, presion):
         
 
 
-# Realizamos el bucle para calcular las posiciones y velocidades de los planetas.
-def simulacion(n, posiciones, velocidades, a_i, w_i, h, iteraciones, l, E_p, E_c, energia, E_p_c, a_c, skip, momento):
+# Realizamos el bucle para calcular los datos de la simulación.
+def simulacion(n, posiciones, velocidades, a_i, w_i, h, iteraciones, l, E_p, E_c, energia, E_p_c, a_c, skip, momento, REESCALAMIENTO):
     E_c_total = 0
     E_p_total = 0
     T = 0
@@ -163,6 +209,10 @@ def simulacion(n, posiciones, velocidades, a_i, w_i, h, iteraciones, l, E_p, E_c
     presion1 = np.zeros((n, 2))
     presion2 = np.zeros((n, 2))
     presion = 0
+    posicion_inicial = posiciones
+    fluctuacion_total = 0
+    q = 0
+    fluctuacion = 0
     for k in range(iteraciones):
 
         guardar_datos(k, posiciones, energia, skip, E_c, E_p, velocidades, presion)
@@ -170,31 +220,58 @@ def simulacion(n, posiciones, velocidades, a_i, w_i, h, iteraciones, l, E_p, E_c
         #Calculamos la presión antes de actualizar las posiciones.
         presion1 = momento
         
+        #Realizamos el algoritmo de Verlet.
         w_i = w_ih(n, velocidades, a_i, w_i, h)
         posiciones = p_th(n, posiciones, w_i, h)
         posiciones, momento = contorno(posiciones, l, n, velocidades)
         a_i, E_p = acel_i_th(n, posiciones, a_i, l, E_p_c, a_c)
         velocidades, E_c = velocidad_th(w_i, n, velocidades, a_i, h)
-        energia = E_c + E_p
         
         #Calculamos la presión después de actualizar las posiciones.
         presion2 = momento
 
+        #Calculamos la energía cinética y potencial total de la suimulacion
         E_c_total += E_c 
         E_p_total += E_p
+        
+        #Calculamos la energía en cada instante de tiempo.
+        energia = E_c + E_p
 
+        #Calculamos la fuerza.
         fuerza = (presion2 - presion1) / (h)
+        
         #Calculamos la presión.
         presion = np.sum(abs(fuerza)) / (4*l)
-        
         presion_media += presion
         
+        #Reescalamos las velocidades en tiempos específicos.
+        if REESCALAMIENTO == True:
+            fluctuacion = np.linalg.norm(posiciones[0] - posicion_inicial[0])**2
+            file_fluctuacion.write(str(np.sum(fluctuacion)) + "\n")
+            fluctuacion_total += fluctuacion
+            q += 1
+            if k*h == 20 or 30 or 35 or 45:
+                velocidades = velocidades*1.5
+                fluctuacion_total = fluctuacion_total / q
+                print("Fluctuación total: ", fluctuacion_total)
+                file_fluctuacion.write(str("\n"))
+                fluctuacion_total = 0   
+                q = 0
+        
+        #Calculamos la temperatura crítica.
+        if Temperatura_critica == True:
+            separacion = np.linalg.norm(posiciones[0] - posiciones[4])**2
+            
+            
+    #Calculamos la energía cinética y potencial promedio de la simulación.
     E_c_total = E_c_total/(iteraciones)
     E_p_total = E_p_total/(iteraciones)
     print("Energía cinética promedio: ", E_c_total)
     print("Energía potencial promedio: ", E_p_total)
+    #Calculamos la temperatura promedio de la simulación.
     T = E_c_total 
     print("Temperatura promedio: ", T)
+    #Calculamos la presión promedio de la simulación.
     presion_media = presion_media/(iteraciones)
     print("Presión promedio: ", presion_media)
     file_presion_temp.write(str(presion_media) + "," + str(T) + "\n")
@@ -213,8 +290,11 @@ for z in range(simulaciones):
     file_energia_potencial = open('energia_potencial' + str(z) + '.dat', "w")
     file_velocidades = open('velocidades_part' + str(z) + '.dat', "w")
     file_presion = open('presion' + str(z) + '.dat', "w")
-    
-    
+    if REESCALAMIENTO == True:
+        file_fluctuacion = open('fluctuacion_temperatura' + str(z) + '.dat', "w")
+    if Temperatura_critica == True:
+        file_temperatura_critica = open('temperatura_critica' + str(z) + '.dat', "w")
+
     
     #Inicializamos las variables que se utilizarán en el bucle.
     #Definimos las velocidades iniciales de las partículas.
@@ -226,7 +306,7 @@ for z in range(simulaciones):
     #Aumentamos la velocidad de las partículas según la simulación
     velocidades = np.array(velocidades) * z
         
-    posiciones = posiciones_iniciales(n, l, s)
+    posiciones = posiciones_iniciales(n, l, s, panal)
     posiciones, momento = contorno(posiciones, l, n, velocidades)
     E_c = energia_cinetica_inicial(velocidades, n)
     a_i = np.zeros((n, 2))
@@ -241,7 +321,7 @@ for z in range(simulaciones):
     #Calculamos la energía total del sistema.
     energia = E_c + E_p    
     #Ejecutamos la simulación.
-    simulacion(n, posiciones, velocidades, a_i, w_i, h, iteraciones, l, E_p, E_c, energia, E_p_c, a_c, skip, momento)
+    simulacion(n, posiciones, velocidades, a_i, w_i, h, iteraciones, l, E_p, E_c, energia, E_p_c, a_c, skip, momento, REESCALAMIENTO)
     # Cerrar los archivos
     file_posiciones.close()
     file_energia.close()
@@ -249,6 +329,10 @@ for z in range(simulaciones):
     file_energia_potencial.close()
     file_velocidades.close()
     file_presion.close()
+    if REESCALAMIENTO == True:
+        file_fluctuacion.close()
+    if Temperatura_critica == True:
+        file_temperatura_critica.close()
     
 file_presion_temp.close()
 

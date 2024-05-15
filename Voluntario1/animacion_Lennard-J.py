@@ -47,7 +47,7 @@ import numpy as np
 
 # Parámetros
 # ========================================
-file_in = "posiciones_part.dat" # Nombre del fichero de datos
+file_in = "posiciones_part0.dat" # Nombre del fichero de datos
 file_out = "Lennard-Jones_pot" # Nombre del fichero de salida (sin extensión)
 
 # Límites de los ejes X e Y
