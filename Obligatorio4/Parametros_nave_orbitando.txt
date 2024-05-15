@@ -1,0 +1,25 @@
+# Definir las constantes del problema
+MT = 5.9736*10**24                  # Masa de la Tierra
+R_T = 6.37816*10**6                 # Radio de la Tierra
+ML = 0.07349*10**24                 # Masa de la Luna
+R_L = 1.7374*10**6                  # Radio de la Luna
+m = 47000                           # Masa de la nave espacial
+G = 6.67*10**(-11)                  # Constante gravitacional
+dT_L = 3.844*10**8                  # Distancia entre la Tierra y la Luna
+omega = 2.6617*10**(-6)             # Velocidad angular de la Luna
+delta = G*MT/(dT_L**3)              # Parámetro adimensional
+mu = ML/MT                          # Parámetro adimensional
+t = 0                               # Tiempo transcurrido de la simulación
+T = 300000                          # Tiempo total de la simulación
+h = 0.1                             # Paso de tiempo
+k = np.zeros((4, 4))                # Matriz de coeficientes de Runge-Kutta
+
+# Definir las variables iniciales de la nave espacial
+v = np.sqrt(2*G*MT/R_T) / dT_L      # Velocidad inicial de la nave espacial
+theta = np.pi / 11.627               # Ángulo despege inicial de la nave espacial
+r = R_T/dT_L                        # Distancia inicial de la nave espacial
+phi = 0                             # Ángulo inicial con respecto a la tierra de la nave espacial
+p_r = v * np.cos(theta - phi)       # Momento inicial de la nave espacial
+p_phi = r * v * np.sin(theta - phi) # Momento inicial de la nave espacial
+y = np.array([r, phi, p_r, p_phi])  # Vector de posiciones y momentos iniciales de la nave espacial
+radio_luna = R_L / dT_L                    # Radio de la Luna
