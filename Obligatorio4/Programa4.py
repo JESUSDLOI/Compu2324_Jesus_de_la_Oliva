@@ -24,7 +24,7 @@ k = np.zeros((4, 4))                # Matriz de coeficientes de Runge-Kutta
 
 # Definir las variables iniciales de la nave espacial
 v = np.sqrt(2*G*MT/R_T) / dT_L      # Velocidad inicial de la nave espacial
-theta = np.pi / 11.628               # Ángulo despege inicial de la nave espacial
+theta = np.pi / 11.627               # Ángulo despege inicial de la nave espacial
 r = R_T/dT_L                        # Distancia inicial de la nave espacial
 phi = 0                             # Ángulo inicial con respecto a la tierra de la nave espacial
 p_r = v * np.cos(theta - phi)       # Momento inicial de la nave espacial
@@ -35,7 +35,7 @@ radio_luna = R_L / dT_L                    # Radio de la Luna
 # Distancia de la nave espacial a la Luna
 @jit(nopython=True, fastmath=True)
 def calc_r_primado(r, phi, omega, t):
-    return (1 + r**2 - 2 * r * np.cos(phi - omega*t))**(1/2)
+    return (1 + r**2 - 2 * r * np.cos(phi - omega*t))**(0.5)
 
 # Definir las funciones de las ecuaciones diferenciales
 @jit(nopython=True, fastmath=True)
@@ -139,28 +139,30 @@ def autoajuste_h(h, y, k, delta, mu, omega, t, r_primado, y_medio, k_medio):
     
     return h_max, y_medio, s, y
 
-def pasos_autoajuste_h(h, y, k, delta, mu, omega, t, r_primado, y_medio, k_medio):
+def pasos_autoajuste_h(h, y, k, delta, mu, omega, t, r_primado, y_medio, k_medio, posicion_luna):
     
     h_max, y_medio, s, y = autoajuste_h(h, y, k, delta, mu, omega, t, r_primado, y_medio, k_medio)
     
     while s > 2:
-        h_max, y_medio, s, y = autoajuste_h(h, y, k, delta, mu, omega, t, r_primado, y_medio, k_medio)
         h = h_max
+        h_max, y_medio, s, y = autoajuste_h(h, y, k, delta, mu, omega, t, r_primado, y_medio, k_medio)
+        
     if s < 2:
         y = y_medio
+        posicion_luna = np.array([np.cos(omega*t), np.sin(omega*t)]) # Posición de la Luna en x, y
         t += h  # Incrementar el tiempo
     if h < h_max:
         h = 2 * h
             
-    return h, y, t, y_medio, k_medio
+    return h, y, t, y_medio, posicion_luna
 
 def simulacion_h_ajustada(T, h, y, k, k_medio, delta, mu, omega, i, t, file_posicion_sistema, m, G, MT, ML, dT_L, y_medio, file_H_ajustada):
     i = 0
+    posicion_luna = np.array([np.cos(omega*t), np.sin(omega*t)]) # Posición de la Luna en x, y
     while t < T:
 
         posicion_nave = np.array([y[0]*np.cos(y[1]), y[0]*np.sin(y[1])]) # Posición de la nave en x, y
-        posicion_luna = np.array([np.cos(omega*t), np.sin(omega*t)]) # Posición de la Luna en x, y
-        
+                
         r_primado = calc_r_primado(y[0], y[1], omega, t) # Distancia de la nave espacial a la Luna
         
         r_L = ((y[0]*dT_L)**2 + dT_L**2 - 2*y[0]*dT_L**2*np.cos(y[1]-omega*t))**(1/2) # Distancia de la nave espacial a la Luna
@@ -172,7 +174,7 @@ def simulacion_h_ajustada(T, h, y, k, k_medio, delta, mu, omega, i, t, file_posi
             escribir_H_ajustada(H, file_H_ajustada)
 
         i += 1      # Incrementar el contador de iteraciones
-        h, y, t, y_medio, k_medio = pasos_autoajuste_h(h, y, k, delta, mu, omega, t, r_primado, y_medio, k_medio)   # Calcular el siguiente paso de Runge-Kutta
+        h, y, t, y_medio, posicion_luna = pasos_autoajuste_h(h, y, k, delta, mu, omega, t, r_primado, y_medio, k_medio, posicion_luna)   # Calcular el siguiente paso de Runge-Kutta
 
 # Simulación con paso de tiempo fijo
 
@@ -189,7 +191,7 @@ t = 0                               # Tiempo transcurrido de la simulación
 
 # Definir las variables iniciales de la nave espacial
 v = np.sqrt(2*G*MT/R_T) / dT_L      # Velocidad inicial de la nave espacial
-theta = np.pi / 11.3627             # Ángulo despege inicial de la nave espacial
+theta = np.pi / 11.627             # Ángulo despege inicial de la nave espacial
 r = R_T/dT_L                        # Distancia inicial de la nave espacial
 phi = 0                             # Ángulo inicial con respecto a la tierra de la nave espacial
 p_r = v * np.cos(theta - phi)       # Momento inicial de la nave espacial
@@ -198,7 +200,7 @@ y = np.array([r, phi, p_r, p_phi])  # Vector de posiciones y momentos iniciales 
 y_medio = y.copy()
 h = 0.1                              # Paso de tiempo
 
-#simulacion_h_ajustada(T, h, y, k, k_medio, delta, mu, omega, i, t, file_posicion_sistema, m, G, MT, ML, dT_L, y_medio, file_H_ajustada)
+simulacion_h_ajustada(T, h, y, k, k_medio, delta, mu, omega, i, t, file_posicion_sistema, m, G, MT, ML, dT_L, y_medio, file_H_ajustada)
 file_posicion_sistema.close()
 
 t1 = time.time()

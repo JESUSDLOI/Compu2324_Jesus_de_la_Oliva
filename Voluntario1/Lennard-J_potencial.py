@@ -9,7 +9,7 @@ from numba import jit
 t0 = time.time()
 
 #Número de simulaciones.
-simulaciones = 1
+simulaciones = 4
 
 #Establecemos los uncrementos del tiempo.
 h = 0.001
@@ -36,7 +36,7 @@ s = 1
 panal = True
 
 #Reescalamiento de velocidades en tiempos específicos.
-REESCALAMIENTO = True
+REESCALAMIENTO = False
 
 #Temperatura crítica.
 Temperatura_critica = False
@@ -197,7 +197,19 @@ def guardar_datos(k, posiciones, energia, skip, E_c, E_p, velocidades, presion):
         file_energia.write(str(energia) + "\n")
         np.savetxt(file_velocidades, velocidades, delimiter=",")
         file_presion.write(str(presion) + "\n")
-        
+
+def reescalamiento(velocidades, k, h, posiciones, posicion_inicial, fluctuacion_total, q, fluctuacion):
+    fluctuacion = np.linalg.norm(posiciones[0] - posicion_inicial[0])**2
+    file_fluctuacion.write(str(np.sum(fluctuacion)) + "\n")
+    fluctuacion_total += fluctuacion
+    q += 1
+    if k*h in [20, 30, 35, 45]:
+        velocidades = velocidades * 1.5
+        fluctuacion_total = fluctuacion_total / q
+        print("Fluctuación total: ", fluctuacion_total)
+        file_fluctuacion.write(str("\n"))
+        fluctuacion_total = 0   
+        q = 0
 
 
 # Realizamos el bucle para calcular los datos de la simulación.
@@ -209,7 +221,7 @@ def simulacion(n, posiciones, velocidades, a_i, w_i, h, iteraciones, l, E_p, E_c
     presion1 = np.zeros((n, 2))
     presion2 = np.zeros((n, 2))
     presion = 0
-    posicion_inicial = posiciones
+    posicion_inicial = posiciones[0].copy()
     fluctuacion_total = 0
     q = 0
     fluctuacion = 0
@@ -245,22 +257,14 @@ def simulacion(n, posiciones, velocidades, a_i, w_i, h, iteraciones, l, E_p, E_c
         presion_media += presion
         
         #Reescalamos las velocidades en tiempos específicos.
+        
         if REESCALAMIENTO == True:
-            fluctuacion = np.linalg.norm(posiciones[0] - posicion_inicial[0])**2
-            file_fluctuacion.write(str(np.sum(fluctuacion)) + "\n")
-            fluctuacion_total += fluctuacion
-            q += 1
-            if k*h == 20 or 30 or 35 or 45:
-                velocidades = velocidades*1.5
-                fluctuacion_total = fluctuacion_total / q
-                print("Fluctuación total: ", fluctuacion_total)
-                file_fluctuacion.write(str("\n"))
-                fluctuacion_total = 0   
-                q = 0
+            reescalamiento(velocidades, k, h, posiciones, posicion_inicial, fluctuacion_total, q, fluctuacion)
+   
         
         #Calculamos la temperatura crítica.
         if Temperatura_critica == True:
-            separacion = np.linalg.norm(posiciones[0] - posiciones[4])**2
+            separacion, direcc = distancia_condiciones(posiciones, 0, 1, l)
             
             
     #Calculamos la energía cinética y potencial promedio de la simulación.
