@@ -50,15 +50,54 @@ ax4.scatter(tiempo, data8, color='red', label='Presión')
 
 if data7.ndim == 1:
     ax5.scatter(data7[0], data7[1],  color='blue')
-else:
-    ax5.scatter(data7[:, 0], data7[:, 1],  color='blue')
+
+colors = ['blue', 'green', 'red', 'cyan', 'magenta', 'yellow', 'black']  # Define your colors here
+labels = ['Velocidad modulo 0', 'Velocidad modulo 1', 'Velocidad modulo 2', 'Velocidad modulo 3', 'Velocidad modulo 4', 'Velocidad modulo 5', 'label7']  # Define your labels here
+
+for i in range(len(data7)):
+    ax5.scatter(data7[i, 0], data7[i, 1], color=colors[i % len(colors)], label=labels[i % len(labels)])
+
+# Supongamos que tus datos están en data7
+x = data7[:, 0]
+y = data7[:, 1]
+
+# Realizar el ajuste lineal
+coeffs = np.polyfit(x, y, 1)
+
+# coeffs es una lista de coeficientes, donde el primer elemento es la pendiente y el segundo es la intersección y
+slope, intercept = coeffs
+
+# Ahora puedes usar la pendiente y la intersección y para trazar la línea de ajuste
+x_fit = np.linspace(x.min(), x.max(), 100)  # 100 puntos entre el mínimo y el máximo x
+y_fit = slope * x_fit + intercept
+y_pred = slope * x + intercept
+# Calcular los residuos
+residuos = y - y_pred
+
+# Calcular el error cuadrático medio (MSE)
+mse = np.mean(residuos**2)
+
+# Calcular el chi cuadrado
+chi_cuadrado = 100 - np.sum((residuos / y_pred)**2)
+
+
+ax5.plot(x_fit, y_fit, color='black', label= 'Ajuste linal de los puntos')  # línea de ajuste en rojo
+ax5.text(0.8, 0.3, f'y = {slope:.2f}x + {intercept:.2f}\nMSE = {mse:.2f}\nChi^2 = {chi_cuadrado:.2f}', transform=ax5.transAxes, fontsize=12, verticalalignment='top')  # añadir texto con los valores de la pendiente y la intersección
+ax5.legend()
+ax5.set_title('Relación lineal entre la presión la temperatura', fontsize=20)
+ax5.set_xlabel('Presión unidades reescaladas', fontsize=15)
+ax5.set_ylabel('Temperatura unidades reescaladas', fontsize=15)
+ax5.tick_params(axis='both', labelsize=12)
+
+
 
 
 # Añadir una leyenda
 ax.legend()
-ax.set_title('Energías en el tiempo')
-ax.set_xlabel('Iteraciones')
-ax.set_ylabel('Energía')
+ax.set_title('Energías en el tiempo', fontsize=20)
+ax.set_xlabel('Iteraciones', fontsize=15)
+ax.set_ylabel('Energía', fontsize=15)
+
 
 # Añadir una leyenda velociades
 ax2.legend()

@@ -1,4 +1,4 @@
-#Simulación del sistema solar.
+#Simulación de la dinámica molecular de un gas de partículas en 2D.
 #Unidades del sistema internacional.
 
 import numpy as np
@@ -9,13 +9,13 @@ from numba import jit
 t0 = time.time()
 
 #Número de simulaciones.
-simulaciones = 4
+simulaciones = 2
 
 #Establecemos los uncrementos del tiempo.
-h = 0.001
+h = 0.002
 
 #Número de iteraciones.
-iteraciones = 30000
+iteraciones = 10000
 
 #Número de iteraciones que se saltan para guardar los datos.
 skip = 1
@@ -24,16 +24,16 @@ skip = 1
 sigma = 3.4
 
 #Pedimos el número de partículas.
-n = 40
+n = 16
 
 #Tamaño de caja
 l = 10
 
 #Interespaciado entre las partículas.
-s = 1
+s = 2
 
 #Variable para saber si las partículas se encuentran en un panal.
-panal = True
+panal = False
 
 #Reescalamiento de velocidades en tiempos específicos.
 REESCALAMIENTO = False
@@ -43,6 +43,8 @@ Temperatura_critica = False
 
 if Temperatura_critica == True:
     REESCALAMIENTO = False
+
+velocidad_en_x = True
 
 #Disposición inicial de las partículas
 @jit(nopython=True, fastmath=True)
@@ -305,10 +307,13 @@ for z in range(simulaciones):
     velocidades = np.zeros((n, 2))
     for i in range(n):
         velocidades[i][0] = (2*np.random.rand() - 1) 
-        velocidades[i][1] = np.random.choice([-1, 1])*np.sqrt(1 - velocidades[i][0]**2)
+        velocidades[i][1] = np.random.choice([-1, 1])*np.sqrt(1 - velocidades[i][0]**2) 
 
     #Aumentamos la velocidad de las partículas según la simulación
     velocidades = np.array(velocidades) * z
+    if velocidad_en_x == True:
+        velocidades[:, 0] = 1
+        velocidades[:, 1] = 0
         
     posiciones = posiciones_iniciales(n, l, s, panal)
     posiciones, momento = contorno(posiciones, l, n, velocidades)
