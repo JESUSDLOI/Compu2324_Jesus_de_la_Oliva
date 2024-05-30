@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
-simulacion = 1
+simulacion = 5
 
 # Cargar los datos de los archivos
 data1 = np.loadtxt('energia_cinetica' + str(simulacion) + '.dat')
@@ -27,9 +27,9 @@ v1 = np.linspace(-2, 2, 1000)
 v2 = np.linspace(0, 3, 1000)
 numero_datos = len(data4)
 if data7.ndim == 1:
- T = data7[1]/2
+ T = data7[1]
 else:
- T = data7[simulacion][1]/2
+ T = data7[simulacion][1]
 v_cua2 = v2**2
 v_cua1 = v1**2
 

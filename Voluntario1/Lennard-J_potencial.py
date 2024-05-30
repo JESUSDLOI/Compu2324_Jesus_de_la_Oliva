@@ -9,13 +9,13 @@ from numba import jit
 t0 = time.time()
 
 #Número de simulaciones.
-simulaciones = 2
+simulaciones = 8
 
 #Establecemos los uncrementos del tiempo.
 h = 0.002
 
 #Número de iteraciones.
-iteraciones = 10000
+iteraciones = 40000
 
 #Número de iteraciones que se saltan para guardar los datos.
 skip = 1
@@ -24,13 +24,12 @@ skip = 1
 sigma = 3.4
 
 #Pedimos el número de partículas.
-n = 16
-
+n = 20
 #Tamaño de caja
 l = 10
 
 #Interespaciado entre las partículas.
-s = 2
+s = 1
 
 #Variable para saber si las partículas se encuentran en un panal.
 panal = False
@@ -44,7 +43,7 @@ Temperatura_critica = False
 if Temperatura_critica == True:
     REESCALAMIENTO = False
 
-velocidad_en_x = True
+velocidad_en_x = False
 
 #Disposición inicial de las partículas
 @jit(nopython=True, fastmath=True)
@@ -101,19 +100,19 @@ def contorno(posiciones, l, n, velocidades):
         y = posiciones[i][1]
         if x > l:
             x = x % l
-            momento[i][0] = velocidades[i][0]
+            momento[i] = velocidades[i]
         if x < 0:
             x = x % l
-            momento[i][0] = velocidades[i][0]
+            momento[i] = velocidades[i]
         if y > l:
             y = y % l
-            momento[i][1] = velocidades[i][1]
+            momento[i] = velocidades[i]
         if y < 0:
             y = y % l
-            momento[i][1] = velocidades[i][1]
+            momento[i] = velocidades[i]
         posiciones[i][0] = x
         posiciones[i][1] = y
-    return posiciones, 2*momento
+    return posiciones, momento
 
 #Función para calcular la distancia entre dos partículas.
 @jit(nopython=True, fastmath=True)
@@ -275,7 +274,7 @@ def simulacion(n, posiciones, velocidades, a_i, w_i, h, iteraciones, l, E_p, E_c
     print("Energía cinética promedio: ", E_c_total)
     print("Energía potencial promedio: ", E_p_total)
     #Calculamos la temperatura promedio de la simulación.
-    T = E_c_total 
+    T = E_c_total/(2*n)
     print("Temperatura promedio: ", T)
     #Calculamos la presión promedio de la simulación.
     presion_media = presion_media/(iteraciones)
