@@ -9,50 +9,50 @@ import time
 #ININICIAR VARIABLES
 
 #Lado de la malla
-lado_malla = np.full(2, 120).astype(np.int8)
+lado_malla = np.full(3, 50).astype(np.int8)
 
 #Temperatura
-temperaturas = np.linspace(2.27, 5, 2).astype(np.float32)
+temperaturas = np.linspace(0.5, 5, 3).astype(np.float32)
 
 #Número de pasos_monte
-pasos_monte = np.full(2, 10000).astype(np.int32)
+pasos_monte = np.full(3, 10000).astype(np.int32)
 
 # ================================================================================
 
 
 
 #Matriz aleatoria entre estado 1 y -1
-@jit(nopython=True, fastmath=True, cache=True)
+@jit(nopython=True, fastmath=True)
 def mtrz_aleatoria(M):
     matriz = 2 * np.random.randint(0, 2, size=(M, M)).astype(np.int8) - 1
     return matriz
 
 #Condiciones de contorno periódicas
-@jit(nopython=True, fastmath=True, cache=True)
+@jit(nopython=True, fastmath=True)
 def cond_contorno(M, i, j):
     if i == 0:
-        izquierda = M - 1
-    else:
-        izquierda = i - 1
-    if i == M - 1:
-        derecha = 0
-    else:
-        derecha = i + 1
-    if j == 0:
         arriba = M - 1
     else:
-        arriba = j - 1
-    if j == M - 1:
+        arriba = i - 1
+    if i == M - 1:
         abajo = 0
     else:
-        abajo = j + 1
+        abajo = i + 1
+    if j == 0:
+        izquierda = M - 1
+    else:
+        izquierda = j - 1
+    if j == M - 1:
+        derecha = 0
+    else:
+        derecha = j + 1
     return izquierda, derecha, arriba, abajo
 
     
 
 
 #Cálculo de la matriz
-@jit(nopython=True, fastmath=True, cache=True)
+@jit(nopython=True, fastmath=True)
 def calculo_matriz(matriz, M):
     #Iteración sobre la matriz
     i = np.random.randint(0, M)
@@ -62,23 +62,20 @@ def calculo_matriz(matriz, M):
     izquierda, derecha, arriba, abajo = cond_contorno(M, i, j)
 
     #Calculo de la variación de la energía
-    delta_E = 2*matriz[i,j]*(matriz[(derecha),j] + matriz[i,(abajo)] + matriz[(izquierda),j] + matriz[i,(arriba)])
+    delta_E = 2*matriz[i,j]*(matriz[arriba, j] + matriz[abajo, j] + matriz[i, izquierda] + matriz[i, derecha])
     return i, j, delta_E
 
 #Secuencia de Ising
-@jit(nopython=True, fastmath=True, cache=True)
+@jit(nopython=True, fastmath=True)
 def secuencia_isin(M, T, matriz):
     
     i, j, delta_E = calculo_matriz(matriz, M)
 
     #Probabilidad de cambio
-    p_0 = np.exp(-2*delta_E/T)
+    p_0 = np.exp(-delta_E/T)
 
     #Evaluar probabilidad de cambio
-    if 1 < p_0:
-        p = 1
-    else:
-        p = p_0
+    p = min(1, p_0)
 
     #Número aleatorio entre  para comparar con la probabilidad
     r = np.random.uniform(0, 1)
