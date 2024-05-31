@@ -9,7 +9,7 @@ from numba import jit
 t0 = time.time()
 
 #Número de simulaciones.
-simulaciones = 8
+simulaciones = 4
 
 #Establecemos los uncrementos del tiempo.
 h = 0.002
@@ -94,25 +94,25 @@ def posiciones_iniciales(n, l, s, panal):
 #Condiciónes de contorno periódicas. Y calculamos el momento transferido a la caja.
 @jit(nopython=True, fastmath=True)
 def contorno(posiciones, l, n, velocidades):
-    momento = np.zeros((n, 2))
+    momento = np.zeros((n))
     for i in range(n):
         x = posiciones[i][0]
         y = posiciones[i][1]
         if x > l:
             x = x % l
-            momento[i] = velocidades[i]
+            momento[i] = velocidades[i][0]
         if x < 0:
             x = x % l
-            momento[i] = velocidades[i]
+            momento[i] = velocidades[i][0]
         if y > l:
             y = y % l
-            momento[i] = velocidades[i]
+            momento[i] = velocidades[i][1]
         if y < 0:
             y = y % l
-            momento[i] = velocidades[i]
+            momento[i] = velocidades[i][1]
         posiciones[i][0] = x
         posiciones[i][1] = y
-    return posiciones, momento
+    return posiciones, 2*momento
 
 #Función para calcular la distancia entre dos partículas.
 @jit(nopython=True, fastmath=True)
@@ -219,19 +219,14 @@ def simulacion(n, posiciones, velocidades, a_i, w_i, h, iteraciones, l, E_p, E_c
     E_p_total = 0
     T = 0
     presion_media = 0
-    presion1 = np.zeros((n, 2))
-    presion2 = np.zeros((n, 2))
     presion = 0
     posicion_inicial = posiciones[0].copy()
     fluctuacion_total = 0
     q = 0
     fluctuacion = 0
+    k = 0
+    guardar_datos(k, posiciones, energia, skip, E_c, E_p, velocidades, presion)
     for k in range(iteraciones):
-
-        guardar_datos(k, posiciones, energia, skip, E_c, E_p, velocidades, presion)
-        
-        #Calculamos la presión antes de actualizar las posiciones.
-        presion1 = momento
         
         #Realizamos el algoritmo de Verlet.
         w_i = w_ih(n, velocidades, a_i, w_i, h)
@@ -239,9 +234,6 @@ def simulacion(n, posiciones, velocidades, a_i, w_i, h, iteraciones, l, E_p, E_c
         posiciones, momento = contorno(posiciones, l, n, velocidades)
         a_i, E_p = acel_i_th(n, posiciones, a_i, l, E_p_c, a_c)
         velocidades, E_c = velocidad_th(w_i, n, velocidades, a_i, h)
-        
-        #Calculamos la presión después de actualizar las posiciones.
-        presion2 = momento
 
         #Calculamos la energía cinética y potencial total de la suimulacion
         E_c_total += E_c 
@@ -249,12 +241,13 @@ def simulacion(n, posiciones, velocidades, a_i, w_i, h, iteraciones, l, E_p, E_c
         
         #Calculamos la energía en cada instante de tiempo.
         energia = E_c + E_p
-
-        #Calculamos la fuerza.
-        fuerza = (presion2 - presion1) / (h)
         
+        #Calculamos la presión antes de actualizar las posiciones.
+        momento_paso = np.sum(abs(momento))
+        #Calculamos la fuerza.
+        fuerza = momento_paso / (h)
         #Calculamos la presión.
-        presion = np.sum(abs(fuerza)) / (4*l)
+        presion =  fuerza / (4*l)
         presion_media += presion
         
         #Reescalamos las velocidades en tiempos específicos.
@@ -267,6 +260,10 @@ def simulacion(n, posiciones, velocidades, a_i, w_i, h, iteraciones, l, E_p, E_c
         if Temperatura_critica == True:
             separacion, direcc = distancia_condiciones(posiciones, 0, 1, l)
             
+        guardar_datos(k, posiciones, energia, skip, E_c, E_p, velocidades, presion)
+        
+
+            
             
     #Calculamos la energía cinética y potencial promedio de la simulación.
     E_c_total = E_c_total/(iteraciones)
@@ -274,7 +271,7 @@ def simulacion(n, posiciones, velocidades, a_i, w_i, h, iteraciones, l, E_p, E_c
     print("Energía cinética promedio: ", E_c_total)
     print("Energía potencial promedio: ", E_p_total)
     #Calculamos la temperatura promedio de la simulación.
-    T = E_c_total/(2*n)
+    T = E_c_total*2
     print("Temperatura promedio: ", T)
     #Calculamos la presión promedio de la simulación.
     presion_media = presion_media/(iteraciones)

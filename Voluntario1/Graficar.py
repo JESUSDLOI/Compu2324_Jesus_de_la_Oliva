@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
-simulacion = 5
+simulacion = 3
 
 # Cargar los datos de los archivos
 data1 = np.loadtxt('energia_cinetica' + str(simulacion) + '.dat')
@@ -23,9 +23,10 @@ fig3, ax3 = plt.subplots()
 fig4, ax4 = plt.subplots()
 fig5, ax5 = plt.subplots()
 
+numero_datos = len(data4)
 v1 = np.linspace(-2, 2, 1000)
 v2 = np.linspace(0, 3, 1000)
-numero_datos = len(data4)
+
 if data7.ndim == 1:
  T = data7[1]
 else:
@@ -40,9 +41,9 @@ ax.plot(data3, color='green', label='Energía Total')
 
 #Histograma de velocidades
 ax2.hist(data4, bins=100, color='green', label='Velocidades')
-ax2.plot(v2, (1/T)*v2*np.exp(-v_cua2/(2*T))*numero_datos)
+ax2.plot(v2, (1/T)*v2*np.exp(-v_cua2/(2*T))*numero_datos/10)
 ax3.hist(data5, bins=100, color='blue', label='Velociades x')
-ax3.plot(v1, np.sqrt(1/(2*np.pi*T))*np.exp(-v_cua1/(2*T))*numero_datos)
+ax3.plot(v1, np.sqrt(1/(2*np.pi*T))*np.exp(-v_cua1/(2*T))*numero_datos/10)
 #ax2.hist(data6, bins=100, color='red', label='Velociades y')
 
 tiempo = np.linspace(0, len(data8), len(data8))
