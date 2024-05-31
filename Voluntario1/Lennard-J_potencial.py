@@ -15,7 +15,7 @@ simulaciones = 4
 h = 0.002
 
 #Número de iteraciones.
-iteraciones = 40000
+iteraciones = 80000
 
 #Número de iteraciones que se saltan para guardar los datos.
 skip = 1
@@ -24,9 +24,9 @@ skip = 1
 sigma = 3.4
 
 #Pedimos el número de partículas.
-n = 20
+n = 16
 #Tamaño de caja
-l = 10
+l = 4
 
 #Interespaciado entre las partículas.
 s = 1
@@ -35,10 +35,10 @@ s = 1
 panal = False
 
 #Reescalamiento de velocidades en tiempos específicos.
-REESCALAMIENTO = False
+REESCALAMIENTO = True
 
 #Temperatura crítica.
-Temperatura_critica = False
+Temperatura_critica = True
 
 if Temperatura_critica == True:
     REESCALAMIENTO = False
@@ -200,8 +200,11 @@ def guardar_datos(k, posiciones, energia, skip, E_c, E_p, velocidades, presion):
         file_presion.write(str(presion) + "\n")
 
 def reescalamiento(velocidades, k, h, posiciones, posicion_inicial, fluctuacion_total, q, fluctuacion):
-    fluctuacion = np.linalg.norm(posiciones[0] - posicion_inicial[0])**2
-    file_fluctuacion.write(str(np.sum(fluctuacion)) + "\n")
+    valores = np.zeros((2, 2))
+    valores[0] = posicion_inicial[0]
+    valores[1] = posiciones[0]
+    fluctuacion, resta = distancia_condiciones(valores, 0, 1, l)
+    file_fluctuacion.write(str(fluctuacion**2) + "\n")
     fluctuacion_total += fluctuacion
     q += 1
     if k*h in [20, 30, 35, 45]:
@@ -209,8 +212,24 @@ def reescalamiento(velocidades, k, h, posiciones, posicion_inicial, fluctuacion_
         fluctuacion_total = fluctuacion_total / q
         print("Fluctuación total: ", fluctuacion_total)
         file_fluctuacion.write(str("\n"))
-        fluctuacion_total = 0   
+        fluctuacion_total = 0
         q = 0
+    return velocidades
+
+def T_critica(velocidades, k, h, posiciones, posicion_inicial, fluctuacion_total, q, fluctuacion):
+    fluctuacion, resta = distancia_condiciones(posiciones, 0, 1, l)
+    file_temperatura_critica.write(str(fluctuacion**2) + "\n")
+    fluctuacion_total += fluctuacion
+    q += 1
+    vector = np.arange(1, 8001, 1000)
+    if k in vector:
+        velocidades = velocidades * 1.1
+        fluctuacion_total = fluctuacion_total / q
+        print("Fluctuación total para T crítica: ", fluctuacion_total)
+        file_temperatura_critica.write(str("\n"))
+        fluctuacion_total = 0
+        q = 0
+    return velocidades
 
 
 # Realizamos el bucle para calcular los datos de la simulación.
@@ -251,14 +270,13 @@ def simulacion(n, posiciones, velocidades, a_i, w_i, h, iteraciones, l, E_p, E_c
         presion_media += presion
         
         #Reescalamos las velocidades en tiempos específicos.
-        
         if REESCALAMIENTO == True:
-            reescalamiento(velocidades, k, h, posiciones, posicion_inicial, fluctuacion_total, q, fluctuacion)
+            velocidades = reescalamiento(velocidades, k, h, posiciones, posicion_inicial, fluctuacion_total, q, fluctuacion)
    
         
         #Calculamos la temperatura crítica.
         if Temperatura_critica == True:
-            separacion, direcc = distancia_condiciones(posiciones, 0, 1, l)
+            velocidades = T_critica(velocidades, k, h, posiciones, posicion_inicial, fluctuacion_total, q, fluctuacion)
             
         guardar_datos(k, posiciones, energia, skip, E_c, E_p, velocidades, presion)
         
@@ -271,7 +289,7 @@ def simulacion(n, posiciones, velocidades, a_i, w_i, h, iteraciones, l, E_p, E_c
     print("Energía cinética promedio: ", E_c_total)
     print("Energía potencial promedio: ", E_p_total)
     #Calculamos la temperatura promedio de la simulación.
-    T = E_c_total*2
+    T = E_c_total/n
     print("Temperatura promedio: ", T)
     #Calculamos la presión promedio de la simulación.
     presion_media = presion_media/(iteraciones)

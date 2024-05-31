@@ -18,9 +18,7 @@ data8 = np.loadtxt('presion' + str(simulacion) + '.dat')
 
 # Crear una figura y un eje
 fig, ax = plt.subplots()
-fig2, ax2 = plt.subplots()
-fig3, ax3 = plt.subplots()
-fig4, ax4 = plt.subplots()
+fig2 = plt.figure()
 fig5, ax5 = plt.subplots()
 
 numero_datos = len(data4)
@@ -40,14 +38,23 @@ ax.plot(data2, color='red', label='Energía Potencial')
 ax.plot(data3, color='green', label='Energía Total')
 
 #Histograma de velocidades
-ax2.hist(data4, bins=100, color='green', label='Velocidades')
-ax2.plot(v2, (1/T)*v2*np.exp(-v_cua2/(2*T))*numero_datos/10)
-ax3.hist(data5, bins=100, color='blue', label='Velociades x')
-ax3.plot(v1, np.sqrt(1/(2*np.pi*T))*np.exp(-v_cua1/(2*T))*numero_datos/10)
-#ax2.hist(data6, bins=100, color='red', label='Velociades y')
+# Crear el segundo subplot
+ax2 = fig2.add_subplot(2, 2, 2)  # 2 filas, 2 columnas, segundo gráfico
+ax2.hist(data4, bins=100, color='green', label='Velocidades. Modulo '+ str(simulacion))
 
+# Crear el tercer subplot
+ax3 = fig2.add_subplot(2, 2, 3)  # 2 filas, 2 columnas, tercer gráfico
+ax3.hist(data5, bins=100, color='blue', label='Velociades x. Modulo '+ str(simulacion))
+
+ax7 = fig2.add_subplot(2, 2, 1)  # 2 filas, 2 columnas, tercer gráfico
+ax7.hist(data6, bins=100, color='red', label='Velociades y. Modulo '+ str(simulacion))
+
+
+# Crear el cuarto subplot
+ax4 = fig2.add_subplot(2, 2, 4)  # 2 filas, 2 columnas, cuarto gráfico
 tiempo = np.linspace(0, len(data8), len(data8))
 ax4.scatter(tiempo, data8, color='red', label='Presión')
+
 
 if data7.ndim == 1:
     ax5.scatter(data7[0], data7[1],  color='blue')
@@ -58,7 +65,7 @@ labels = ['Velocidad modulo 0', 'Velocidad modulo 1', 'Velocidad modulo 2', 'Vel
 for i in range(len(data7)):
     ax5.scatter(data7[i, 0], data7[i, 1], color=colors[i % len(colors)], label=labels[i % len(labels)])
 
-# Supongamos que tus datos están en data7
+# Ajuste lineal
 x = data7[:, 0]
 y = data7[:, 1]
 
@@ -105,6 +112,18 @@ ax2.legend()
 ax2.set_title('Velocidades en el tiempo')
 ax2.set_xlabel('Velocidad')
 ax2.set_ylabel('Frecuencia') 
+ax3.legend()
+ax3.set_title('Velocidades en el tiempo en x')
+ax3.set_xlabel('Velocidad')
+ax3.set_ylabel('Frecuencia')
+ax7.legend()
+ax7.set_title('Velocidades en el tiempo en y')
+ax7.set_xlabel('Velocidad')
+ax7.set_ylabel('Frecuencia')
+ax4.legend()
+ax4.set_title('Presión en el tiempo')
+ax4.set_xlabel('Iteraciones')
+ax4.set_ylabel('Presión')
 
 
 # Mostrar el gráfico
