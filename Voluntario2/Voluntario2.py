@@ -15,7 +15,7 @@ lado_malla = np.full(1, 10).astype(np.int8)
 temperaturas = np.linspace(0.5, 5, 1).astype(np.float32)
 
 #Número de pasos_monte
-pasos_monte = np.full(1, 100000).astype(np.int32)
+pasos_monte = np.full(1, 200000).astype(np.int32)
 
 #Calcular magnetización y energía
 calcular_mag_ener = True
@@ -112,10 +112,17 @@ def calculo_matriz(matriz, M, T):
 
 #Secuencia de Ising
 @jit(nopython=True, fastmath=True)
-def secuencia_isin(M, T, matriz, n, magnt_prom, E, m_cuadrado, calcular_mag_ener, magnt_prom_superior, magnt_prom_inferior, E_sup, E_inf):
+def secuencia_isin(M, T, matriz, n, magnt_prom, E, m_cuadrado, calcular_mag_ener):
     
     #Matriz de Ising
     matriz, cambio = calculo_matriz(matriz, M, T)
+
+    magnt_prom = 0
+    magnt_prom_superior = 0
+    magnt_prom_inferior = 0 
+    E = 0
+    E_sup = 0
+    E_inf = 0
 
     if calcular_mag_ener == True:
         r = 0
@@ -138,7 +145,7 @@ def secuencia_isin(M, T, matriz, n, magnt_prom, E, m_cuadrado, calcular_mag_ener
                 i += 1
             E_sup = -E_sup/2 
             E_inf = -E_inf/2   
-            E = E_sup + E_inf
+            E = (E_sup + E_inf)/(m_cuadrado)
             magnt_prom_superior = magnt_prom_superior/(r)
             magnt_prom_inferior = magnt_prom_inferior/(m_cuadrado - r)  
             magnt_prom = magnt_prom_superior + magnt_prom_inferior
@@ -165,6 +172,7 @@ def ising_model(M, T, N, calcular_mag_ener):
         E_sup = 0
         E_inf = 0
 
+
     #Matriz de Ising
     matriz = mtrz_aleatoria(M)
     m_cuadrado = M**2
@@ -176,7 +184,7 @@ def ising_model(M, T, N, calcular_mag_ener):
             while k < (m_cuadrado):
                 #Resultados
                 if calcular_mag_ener == True:
-                    magnt_prom, E, matriz, cambio, magnt_prom_superior, magnt_prom_inferior, E_sup, E_inf = secuencia_isin(M, T, matriz, n, magnt_prom, E, m_cuadrado, calcular_mag_ener,  magnt_prom_superior, magnt_prom_inferior, E_sup, E_inf)
+                    magnt_prom, E, matriz, cambio, magnt_prom_superior, magnt_prom_inferior, E_sup, E_inf = secuencia_isin(M, T, matriz, n, magnt_prom, E, m_cuadrado, calcular_mag_ener)
                     if n % 100 == 0:    
                         magnetizaciones.append(magnt_prom)
                         energias.append(E)
@@ -187,7 +195,7 @@ def ising_model(M, T, N, calcular_mag_ener):
                     if cambio == True:
                         k += 1
                 else:
-                    magnt_prom, E, matriz, cambio, magnt_prom_superior, magnt_prom_inferior, E_sup, E_inf = secuencia_isin(M, T, matriz, n, magnt_prom, E, m_cuadrado, calcular_mag_ener,  magnt_prom_superior, magnt_prom_inferior, E_sup, E_inf)
+                    magnt_prom, E, matriz, cambio, magnt_prom_superior, magnt_prom_inferior, E_sup, E_inf = secuencia_isin(M, T, matriz, n, magnt_prom, E, m_cuadrado, calcular_mag_ener)
                     if cambio == True:
                         k += 1
             if n % 100 == 0:
