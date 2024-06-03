@@ -15,7 +15,7 @@ lado_malla = np.full(1, 10).astype(np.int8)
 temperaturas = np.linspace(0.5, 5, 1).astype(np.float32)
 
 #Número de pasos_monte
-pasos_monte = np.full(1, 40000).astype(np.int32)
+pasos_monte = np.full(1, 100000).astype(np.int32)
 
 #Calcular magnetización y energía
 calcular_mag_ener = True
@@ -23,94 +23,99 @@ calcular_mag_ener = True
 
 
 #Matriz aleatoria entre estado 1 y -1
-#@jit(nopython=True, fastmath=True)
+@jit(nopython=True, fastmath=True)
 def mtrz_aleatoria(M):
     matriz = 2 * np.random.randint(0, 2, size=(M, M)).astype(np.int8) - 1
-    matriz[0] = np.ones(M).astype(np.int8)
     matriz[M-1] = np.ones(M).astype(np.int8)
-    matriz[M-1] = -matriz[M-1]
+    matriz[0] = np.ones(M).astype(np.int8)
+    matriz[0] = -matriz[M-1]
     return matriz
 
 #Condiciones de contorno periódicas
-#@jit(nopython=True, fastmath=True)
+@jit(nopython=True, fastmath=True)
 def cond_contorno(M, i, j):
-    if i == 0:
-        arriba = M - 1
-    else:
-        arriba = i - 1
-    if i == M - 1:
-        abajo = 0
-    else:
-        abajo = i + 1
-    if j == 0:
-        izquierda = M - 1
-    else:
-        izquierda = j - 1
-    if j == M - 1:
-        derecha = 0
-    else:
-        derecha = j + 1
+    if i==M-1:      #
+        arriba = M-2    #
+        abajo = M-1  #
+    elif i==0:      #
+        arriba = 0      # Condiciones de contorno verticales
+        abajo = 1    # 
+    else:           # 
+        arriba = i-1    # 
+        abajo = i+1  #
+        
+    if j==M-1:       # 
+        izquierda = j-1   # 
+        derecha = 0    # 
+    elif j==0:       # 
+        izquierda = M-1   # Periodicidad horizontal
+        derecha = 1    # 
+    else:            # 
+        izquierda = j-1   # 
+        derecha = j+1  
+        
     return izquierda, derecha, arriba, abajo
 
 
 #Cálculo de la matriz
-#@jit(nopython=True, fastmath=True)
-def calculo_matriz(matriz, M):
+@jit(nopython=True, fastmath=True)
+def calculo_matriz(matriz, M, T):
     cambio = True
     
     #Iteración sobre la matriz
-    i = np.random.randint(1, M-1)
+    i = np.random.randint(1, M-2)
     j = np.random.randint(0, M)
     
     #Elección de la pareja
     eje = np.random.randint(0, 2)
     if eje == 0:
-        i_pareja = i - 1
+        i_pareja = i + 1
         j_pareja = j
     else:
-        j_pareja = j + 1
-        if j_pareja == M:
-            j_pareja = 0
         i_pareja = i
-
-    if i_pareja == 0 or i_pareja == (M - 1) or matriz[i,j] == matriz[i_pareja, j_pareja]:
+        if j == M-1:
+            j_pareja = 0
+        else:
+            j_pareja = j + 1
+        
+    if matriz[i,j] == matriz[i_pareja, j_pareja]:
         cambio = False
-        delta_E = 0
     else:
         izquierda, derecha, arriba, abajo = cond_contorno(M, i, j)
         izquierda_pareja, derecha_pareja, arriba_pareja, abajo_pareja = cond_contorno(M, i_pareja, j_pareja)
         
         #Calculo de la variación de la energía
+        #Cambio vertical
         if eje == 0:
             delta_E = 2*matriz[i,j]*(matriz[i, derecha] + matriz[i, izquierda] + matriz[arriba, j] - matriz[i_pareja, derecha_pareja] - matriz[i_pareja, izquierda_pareja] - matriz[abajo_pareja, j_pareja])
+        #Cambio horizontal
         else:
             delta_E = 2*matriz[i,j]*(matriz[arriba, j] + matriz[abajo, j] + matriz[i, izquierda] - matriz[arriba_pareja, j_pareja] - matriz[abajo_pareja, j_pareja] - matriz[i_pareja, derecha_pareja])
-        
-                  
-    return i, j, i_pareja, j_pareja, delta_E, cambio
-
-#Secuencia de Ising
-#@jit(nopython=True, fastmath=True)
-def secuencia_isin(M, T, matriz, n, magnt_prom, E, m_cuadrado, calcular_mag_ener, magnt_prom_superior, magnt_prom_inferior, E_sup, E_inf):
-    
-    #Variables
-    i, j, i_pareja, j_pareja ,delta_E, cambio = calculo_matriz(matriz, M)
-    
-    if cambio == False:
-        pass
-    else:
+       
         #Probabilidad de cambio
         p_0 = np.exp(-delta_E/T)
 
         #Evaluar probabilidad de cambio
-        p = min(1, p_0)
+        if p_0 > 1:
+            p = 1
+        else:
+            p = p_0
 
         #Número aleatorio entre  para comparar con la probabilidad
-        r = np.random.uniform(0, 1)
+        r = np.random.rand()
 
         #Comparar probabilidad para cambiar el spin
         if r < p:
             matriz[i, j], matriz[i_pareja, j_pareja] = matriz[i_pareja, j_pareja], matriz[i, j]
+                     
+    return matriz, cambio
+
+#Secuencia de Ising
+@jit(nopython=True, fastmath=True)
+def secuencia_isin(M, T, matriz, n, magnt_prom, E, m_cuadrado, calcular_mag_ener, magnt_prom_superior, magnt_prom_inferior, E_sup, E_inf):
+    
+    #Matriz de Ising
+    matriz, cambio = calculo_matriz(matriz, M, T)
 
     if calcular_mag_ener == True:
         r = 0
@@ -119,6 +124,7 @@ def secuencia_isin(M, T, matriz, n, magnt_prom, E, m_cuadrado, calcular_mag_ener
             i = 0
             j = 0
             while i < M:
+                j = 0
                 while j < M:
                     izquierda, derecha, arriba, abajo = cond_contorno(M, i, j)
                     if i < M/2:
@@ -138,8 +144,7 @@ def secuencia_isin(M, T, matriz, n, magnt_prom, E, m_cuadrado, calcular_mag_ener
             magnt_prom = magnt_prom_superior + magnt_prom_inferior
         return magnt_prom, E, matriz, cambio, magnt_prom_superior, magnt_prom_inferior, E_sup, E_inf
     else:
-        magnt_prom = 0
-        return magnt_prom, E, matriz, cambio, 0, 0, 0, 0
+        return magnt_prom, E, matriz, cambio, magnt_prom_superior, magnt_prom_inferior, E_sup, E_inf
 
 #Matriz de Ising
 def ising_model(M, T, N, calcular_mag_ener):
@@ -172,22 +177,22 @@ def ising_model(M, T, N, calcular_mag_ener):
                 #Resultados
                 if calcular_mag_ener == True:
                     magnt_prom, E, matriz, cambio, magnt_prom_superior, magnt_prom_inferior, E_sup, E_inf = secuencia_isin(M, T, matriz, n, magnt_prom, E, m_cuadrado, calcular_mag_ener,  magnt_prom_superior, magnt_prom_inferior, E_sup, E_inf)
-                    magnetizaciones.append(magnt_prom)
-                    energias.append(E)
-                    magnetizaciones_inferior.append(magnt_prom_inferior)
-                    magnetizaciones_superior.append(magnt_prom_superior)
-                    energias_superior.append(E_sup)
-                    energias_inferior.append(E_inf)
+                    if n % 100 == 0:    
+                        magnetizaciones.append(magnt_prom)
+                        energias.append(E)
+                        magnetizaciones_inferior.append(magnt_prom_inferior)
+                        magnetizaciones_superior.append(magnt_prom_superior)
+                        energias_superior.append(E_sup)
+                        energias_inferior.append(E_inf)
                     if cambio == True:
                         k += 1
                 else:
                     magnt_prom, E, matriz, cambio, magnt_prom_superior, magnt_prom_inferior, E_sup, E_inf = secuencia_isin(M, T, matriz, n, magnt_prom, E, m_cuadrado, calcular_mag_ener,  magnt_prom_superior, magnt_prom_inferior, E_sup, E_inf)
                     if cambio == True:
                         k += 1
-                if n % 500 == 0:
-                    file.write('\n')
-                    np.savetxt(file, matriz, fmt='%d', delimiter=',') 
-                        
+            if n % 100 == 0:
+                file.write('\n')
+                np.savetxt(file, matriz, fmt='%d', delimiter=',')                        
             n += 1
             
     return energias, magnetizaciones, magnetizaciones_superior, magnetizaciones_inferior, E_sup, E_inf
@@ -219,11 +224,11 @@ def simulaciones(lado_malla, temperaturas, pasos_monte):
             magnetizaciones_superior = np.array(magnetizaciones_superior)
             E_inf = np.array(E_inf)
             E_sup = np.array(E_sup)
-            energia_cuadra = np.square(np.array(en))
+            energia_cuadra = en**2
             promedio_mag = np.mean(magn)
             media_eners = np.mean(en)
-            promedio_energia = media_eners/(2*M)
-            calor_especif = (np.mean(energia_cuadra) - media_eners**2)/(T**2*M**2)
+            promedio_energia = media_eners/(M**2)
+            calor_especif = (np.mean(energia_cuadra) - media_eners**2)/(T*M)**2
 
             open('resultados_'+str(T)+'_'+str(M)+'.dat' , 'w').write(f'Magnetizacion prmedio {promedio_mag} \n Energia promedio {promedio_energia} \n Calor especifico {calor_especif} \n Tiempo {tiempo}\n')
 
