@@ -45,14 +45,14 @@ from matplotlib.animation import FuncAnimation
 import numpy as np
 import io
 
-T = 1
+T = 1.61
 M = 10
 
 # Parámetros
 # ========================================
 file_in = 'ising_data_tem_{0:.2f}_malla_{1}.dat'.format(T, M) # Nombre del fichero de datos
 file_out = "ising" # Nombre del fichero de salida (sin extensión)
-interval = 1 # Tiempo entre fotogramas en milisegundos
+interval = 10 # Tiempo entre fotogramas en milisegundos
 save_to_file = False # False: muestra la animación por pantalla,
                      # True: la guarda en un fichero
 dpi = 150 # Calidad del vídeo de salida (dots per inch)
