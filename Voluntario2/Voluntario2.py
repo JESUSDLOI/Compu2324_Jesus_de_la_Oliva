@@ -12,13 +12,13 @@ import time
 lado_malla = np.full(1, 10).astype(np.int8)
 
 #Temperatura
-temperaturas = np.linspace(0.5, 5, 1).astype(np.float32)
+temperaturas = np.linspace(1, 5, 1).astype(np.float32)
 
 #Número de pasos_monte
-pasos_monte = np.full(1, 200000).astype(np.int32)
+pasos_monte = np.full(1, 50000).astype(np.int32)
 
 #Calcular magnetización y energía
-calcular_mag_ener = True
+calcular_mag_ener = False
 # ================================================================================
 
 
@@ -85,6 +85,8 @@ def calculo_matriz(matriz, M, T):
         izquierda_pareja, derecha_pareja, arriba_pareja, abajo_pareja = cond_contorno(M, i_pareja, j_pareja)
         
         #Calculo de la variación de la energía
+        #Cálculo de la energía y magnetización promedio
+    
         #Cambio vertical
         if eje == 0:
             delta_E = 2*matriz[i,j]*(matriz[i, derecha] + matriz[i, izquierda] + matriz[arriba, j] - matriz[i_pareja, derecha_pareja] - matriz[i_pareja, izquierda_pareja] - matriz[abajo_pareja, j_pareja])
@@ -158,19 +160,19 @@ def ising_model(M, T, N, calcular_mag_ener):
     #Variables
     k= 0
     n = 0
-    if calcular_mag_ener == True:
-        magnetizaciones = []    
-        energias = []
-        magnetizaciones_superior = []
-        magnetizaciones_inferior = []
-        energias_superior = []
-        energias_inferior = []
-        magnt_prom = 0
-        magnt_prom_superior = 0
-        magnt_prom_inferior = 0 
-        E = 0
-        E_sup = 0
-        E_inf = 0
+    
+    magnetizaciones = []    
+    energias = []
+    magnetizaciones_superior = []
+    magnetizaciones_inferior = []
+    energias_superior = []
+    energias_inferior = []
+    magnt_prom = 0
+    magnt_prom_superior = 0
+    magnt_prom_inferior = 0 
+    E = 0
+    E_sup = 0
+    E_inf = 0
 
 
     #Matriz de Ising
@@ -192,12 +194,10 @@ def ising_model(M, T, N, calcular_mag_ener):
                         magnetizaciones_superior.append(magnt_prom_superior)
                         energias_superior.append(E_sup)
                         energias_inferior.append(E_inf)
-                    if cambio == True:
-                        k += 1
                 else:
                     magnt_prom, E, matriz, cambio, magnt_prom_superior, magnt_prom_inferior, E_sup, E_inf = secuencia_isin(M, T, matriz, n, magnt_prom, E, m_cuadrado, calcular_mag_ener)
-                    if cambio == True:
-                        k += 1
+                k += 1
+                    
             if n % 100 == 0:
                 file.write('\n')
                 np.savetxt(file, matriz, fmt='%d', delimiter=',')                        
@@ -207,7 +207,7 @@ def ising_model(M, T, N, calcular_mag_ener):
 
 
 #Simulaciones de Monte Carlo distintas temperaturas y mallas
-def simulaciones(lado_malla, temperaturas, pasos_monte):
+def simulaciones(lado_malla, temperaturas, pasos_monte, calcular_mag_ener):
 
     #Cantidad de archivos
     C = len(temperaturas)
@@ -249,42 +249,45 @@ def simulaciones(lado_malla, temperaturas, pasos_monte):
         
     return magn, en, magnetizaciones_superior, magnetizaciones_inferior, E_sup, E_inf
     
-magn, en, magnetizaciones_superior, magnetizaciones_inferior, E_sup, E_inf = simulaciones(lado_malla, temperaturas, pasos_monte)
-
-plt.figure()
+magn, en, magnetizaciones_superior, magnetizaciones_inferior, E_sup, E_inf = simulaciones(lado_malla, temperaturas, pasos_monte, calcular_mag_ener)
 
 
-# Graficar las magnetizaciones
-plt.plot(magnetizaciones_superior, label='Magnetizaciones Superior')
-plt.plot(magnetizaciones_inferior, label='Magnetizaciones Inferior')
-plt.plot(magn, label='Magnetizaciones')
-plt.legend()
+if calcular_mag_ener == True:
+    # Crear una figura
+    plt.figure()
 
-# Añadir títulos y etiquetas
-plt.title('Magnetizaciones Superior, Inferior y total')
-plt.xlabel('Pasos')
-plt.ylabel('Magnetización')
 
-# Crear una segunda figura
-plt.figure()
+    # Graficar las magnetizaciones
+    plt.plot(magnetizaciones_superior, label='Magnetizaciones Superior')
+    plt.plot(magnetizaciones_inferior, label='Magnetizaciones Inferior')
+    plt.plot(magn, label='Magnetizaciones')
+    plt.legend()
 
-# Graficar las energías
-plt.plot(E_sup, label='Energía Superior')
-plt.plot(E_inf, label='Energía Inferior')
-plt.plot(en, label='Energía')
+    # Añadir títulos y etiquetas
+    plt.title('Magnetizaciones Superior, Inferior y total')
+    plt.xlabel('Pasos')
+    plt.ylabel('Magnetización')
 
-# Añadir títulos y etiquetas
-plt.title('Energías Superior e Inferior')
-plt.xlabel('Pasos')
-plt.ylabel('Energía')
+    # Crear una segunda figura
+    plt.figure()
 
-# Mostrar la leyenda
-plt.legend()
+    # Graficar las energías
+    plt.plot(E_sup, label='Energía Superior')
+    plt.plot(E_inf, label='Energía Inferior')
+    plt.plot(en, label='Energía')
 
-# Mostrar la gráfica
-plt.show()
-        
-print('Simulaciones terminadas')
+    # Añadir títulos y etiquetas
+    plt.title('Energías Superior e Inferior')
+    plt.xlabel('Pasos')
+    plt.ylabel('Energía')
+
+    # Mostrar la leyenda
+    plt.legend()
+
+    # Mostrar la gráfica
+    plt.show()
+            
+    print('Simulaciones terminadas')
 
 
 
