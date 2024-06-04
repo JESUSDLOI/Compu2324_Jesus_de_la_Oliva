@@ -9,13 +9,13 @@ from numba import jit
 t0 = time.time()
 
 #Número de simulaciones.
-simulaciones = 1
+simulaciones = 2
 
 #Establecemos los uncrementos del tiempo.
 h = 0.002
 
 #Número de iteraciones.
-iteraciones = 50000
+iteraciones = 80000
 
 #Número de iteraciones que se saltan para guardar los datos.
 skip = 1
@@ -24,21 +24,21 @@ skip = 1
 sigma = 3.4
 
 #Pedimos el número de partículas.
-n = 80
+n = 15
 #Tamaño de caja
-l = 11
+l = 6
 
 #Interespaciado entre las partículas.
-s = 1
+s = 1.5
 
 #Variable para saber si las partículas se encuentran en un panal.
-panal = True
+panal = False
 
 #Reescalamiento de velocidades en tiempos específicos.
-REESCALAMIENTO = False
+REESCALAMIENTO = True
 
 #Temperatura crítica.
-Temperatura_critica = False
+Temperatura_critica = True
 
 if Temperatura_critica == True:
     REESCALAMIENTO = False
@@ -204,7 +204,8 @@ def reescalamiento(velocidades, k, h, posiciones, posicion_inicial, fluctuacion_
     valores[0] = posicion_inicial[0]
     valores[1] = posiciones[0]
     fluctuacion, resta = distancia_condiciones(valores, 0, 1, l)
-    file_fluctuacion.write(str(fluctuacion**2) + "\n")
+    fluctuacion = fluctuacion**2
+    file_fluctuacion.write(str(fluctuacion) + "\n")
     fluctuacion_total += fluctuacion
     q += 1
     if k*h in [20, 30, 35, 45]:
@@ -214,14 +215,15 @@ def reescalamiento(velocidades, k, h, posiciones, posicion_inicial, fluctuacion_
         file_fluctuacion.write(str("\n"))
         fluctuacion_total = 0
         q = 0
-    return velocidades
+    return velocidades, q
 
-def T_critica(velocidades, k, h, posiciones, posicion_inicial, fluctuacion_total, q, fluctuacion):
+def T_critica(velocidades, k, h, posiciones, fluctuacion_total, q, fluctuacion):
     fluctuacion, resta = distancia_condiciones(posiciones, 0, 1, l)
-    file_temperatura_critica.write(str(fluctuacion**2) + "\n")
+    fluctuacion = fluctuacion**2
+    file_temperatura_critica.write(str(fluctuacion) + "\n")
     fluctuacion_total += fluctuacion
     q += 1
-    vector = np.arange(1, 8001, 1000)
+    vector = np.arange(1, 80000, 6000)
     if k in vector:
         velocidades = velocidades * 1.1
         fluctuacion_total = fluctuacion_total / q
@@ -229,7 +231,7 @@ def T_critica(velocidades, k, h, posiciones, posicion_inicial, fluctuacion_total
         file_temperatura_critica.write(str("\n"))
         fluctuacion_total = 0
         q = 0
-    return velocidades
+    return velocidades, q
 
 
 # Realizamos el bucle para calcular los datos de la simulación.
@@ -271,12 +273,12 @@ def simulacion(n, posiciones, velocidades, a_i, w_i, h, iteraciones, l, E_p, E_c
         
         #Reescalamos las velocidades en tiempos específicos.
         if REESCALAMIENTO == True:
-            velocidades = reescalamiento(velocidades, k, h, posiciones, posicion_inicial, fluctuacion_total, q, fluctuacion)
+            velocidades, q = reescalamiento(velocidades, k, h, posiciones, posicion_inicial, fluctuacion_total, q, fluctuacion)
    
         
         #Calculamos la temperatura crítica.
         if Temperatura_critica == True:
-            velocidades = T_critica(velocidades, k, h, posiciones, posicion_inicial, fluctuacion_total, q, fluctuacion)
+            velocidades, q = T_critica(velocidades, k, h, posiciones, fluctuacion_total, q, fluctuacion)
             
         guardar_datos(k, posiciones, energia, skip, E_c, E_p, velocidades, presion)
         

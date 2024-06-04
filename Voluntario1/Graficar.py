@@ -13,8 +13,8 @@ data6 = data4[:,1]
 data4 = np.linalg.norm(data4, axis=1)
 data7 = np.loadtxt('presion_temp.dat', delimiter=',')
 data8 = np.loadtxt('presion' + str(simulacion) + '.dat')
-
-
+data10 = np.loadtxt('fluctuacion_temperatura' + str(simulacion) + '.dat')
+data11 = np.loadtxt('temperatura_critica' + str(simulacion) + '.dat')
 
 # Crear una figura y un eje
 fig, ax = plt.subplots()
@@ -101,8 +101,40 @@ ax5.set_xlabel('Presión unidades reescaladas', fontsize=15)
 ax5.set_ylabel('Temperatura unidades reescaladas', fontsize=15)
 ax5.tick_params(axis='both', labelsize=12)
 
+velocidad_media = np.zeros((len(data4)//15, 1))
+h = 0
+i = 0
+for j in range(len(data4)):
+    if h < 15:
+        velocidad_media[i] += np.linalg.norm(data4[j])/15
+        h += 1
+    else:
+        h=0
+        velocidad_media[i] += np.linalg.norm(data4[j])/15
+        i += 1
+        
+
+fig6, ax6 = plt.subplots()
+ax6.plot(velocidad_media, color='blue', label='Velocidad media')
+ax6.set_title('Velocidad media a lo largo del tiempo', fontsize=20)
+ax6.set_xlabel('Iteraciones', fontsize=15)
+ax6.set_ylabel('Velocidad', fontsize=15)
+ax6.tick_params(axis='both', labelsize=15)
+
+fig3, ax10 = plt.subplots()
+ax10.plot(data10, color='blue', label='Fluctuación de las posiciones')
+ax10.set_title('Fluctuación de las posiciones a lo largo del tiempo aumentando T', fontsize=20)
+ax10.set_xlabel('Iteraciones', fontsize=15)
+ax10.set_ylabel('Fluctuación', fontsize=15)
+ax10.tick_params(axis='both', labelsize=15)
 
 
+fig4, ax11 = plt.subplots()
+ax11.plot(data11, color='blue', label='Fluctuación de las posiciones de dos partículas')
+ax11.set_title('Fluctuación de las posiciones a lo largo del tiempo aumentando T', fontsize=20)
+ax11.set_xlabel('Iteraciones', fontsize=15)
+ax11.set_ylabel('Fluctuación', fontsize=15)
+ax11.tick_params(axis='both', labelsize=15)
 
 # Añadir una leyenda
 ax.legend(fontsize=20)
