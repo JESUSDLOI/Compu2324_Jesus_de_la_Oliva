@@ -48,20 +48,20 @@ import numpy as np
 # Parámetros
 # ========================================
 file_in = "posiciones_part0.dat" # Nombre del fichero de datos
-file_out = "Lennard-Jones.Apartado_5" # Nombre del fichero de salida (sin extensión)
+file_out = "Lennard-Jones.Posiciob_Pnal" # Nombre del fichero de salida (sin extensión)
 
 # Límites de los ejes X e Y
 x_min = 0
-x_max = 4
+x_max = 11
 y_min = 0 
-y_max = 4
+y_max = 11
 
 interval = 1 # Tiempo entre fotogramas en milisegundos
 show_trail = False # Muestra la "estela" del planeta
 trail_width = 1 # Ancho de la estela
-save_to_file = False # False: muestra la animación por pantalla,
+save_to_file = True # False: muestra la animación por pantalla,
                      # True: la guarda en un fichero
-dpi = 75 # Calidad del vídeo de salida (dots per inch)
+dpi = 150 # Calidad del vídeo de salida (dots per inch)
 
 # Radio del planeta, en las mismas unidades que la posición
 # Puede ser un número (el radio de todos los planetas) o una lista con

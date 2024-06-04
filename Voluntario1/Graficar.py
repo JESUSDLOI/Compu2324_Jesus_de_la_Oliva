@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
-simulacion = 3
+simulacion = 0
 
 # Cargar los datos de los archivos
 data1 = np.loadtxt('energia_cinetica' + str(simulacion) + '.dat')
@@ -38,22 +38,26 @@ ax.plot(data2, color='red', label='Energía Potencial')
 ax.plot(data3, color='green', label='Energía Total')
 
 #Histograma de velocidades
+
+fig2.subplots_adjust(wspace=0.3, hspace=0.5)
 # Crear el segundo subplot
 ax2 = fig2.add_subplot(2, 2, 2)  # 2 filas, 2 columnas, segundo gráfico
 ax2.hist(data4, bins=100, color='green', label='Velocidades. Modulo '+ str(simulacion))
-
+ax2.tick_params(axis='both', labelsize=20)
 # Crear el tercer subplot
 ax3 = fig2.add_subplot(2, 2, 3)  # 2 filas, 2 columnas, tercer gráfico
 ax3.hist(data5, bins=100, color='blue', label='Velociades x. Modulo '+ str(simulacion))
+ax3.tick_params(axis='both', labelsize=20)
 
 ax7 = fig2.add_subplot(2, 2, 1)  # 2 filas, 2 columnas, tercer gráfico
 ax7.hist(data6, bins=100, color='red', label='Velociades y. Modulo '+ str(simulacion))
-
+ax7.tick_params(axis='both', labelsize=20)
 
 # Crear el cuarto subplot
 ax4 = fig2.add_subplot(2, 2, 4)  # 2 filas, 2 columnas, cuarto gráfico
 tiempo = np.linspace(0, len(data8), len(data8))
 ax4.scatter(tiempo, data8, color='red', label='Presión')
+ax3.tick_params(axis='both', labelsize=20)
 
 
 if data7.ndim == 1:
@@ -101,29 +105,31 @@ ax5.tick_params(axis='both', labelsize=12)
 
 
 # Añadir una leyenda
-ax.legend()
-ax.set_title('Energías en el tiempo', fontsize=20)
-ax.set_xlabel('Iteraciones', fontsize=15)
-ax.set_ylabel('Energía', fontsize=15)
+ax.legend(fontsize=20)
+ax.set_title('Energías en el tiempo', fontsize=30)
+ax.set_xlabel('Iteraciones', fontsize=20)
+ax.set_ylabel('Energía', fontsize=20)
+ax.tick_params(axis='both', labelsize=20)
 
 
 # Añadir una leyenda velociades
-ax2.legend()
-ax2.set_title('Velocidades en el tiempo')
-ax2.set_xlabel('Velocidad')
-ax2.set_ylabel('Frecuencia') 
-ax3.legend()
-ax3.set_title('Velocidades en el tiempo en x')
-ax3.set_xlabel('Velocidad')
-ax3.set_ylabel('Frecuencia')
-ax7.legend()
-ax7.set_title('Velocidades en el tiempo en y')
-ax7.set_xlabel('Velocidad')
-ax7.set_ylabel('Frecuencia')
-ax4.legend()
-ax4.set_title('Presión en el tiempo')
-ax4.set_xlabel('Iteraciones')
-ax4.set_ylabel('Presión')
+fig2.suptitle('Simulación ' + str(simulacion), fontsize=25)
+ax2.legend(fontsize=13)
+ax2.set_title('Velocidades en el tiempo', fontsize=20)
+ax2.set_xlabel('Velocidad', fontsize=20)
+ax2.set_ylabel('Frecuencia', fontsize=20) 
+ax3.legend(fontsize=13)
+ax3.set_title('Velocidades en el tiempo en x', fontsize=20)
+ax3.set_xlabel('Velocidad', fontsize=20)
+ax3.set_ylabel('Frecuencia', fontsize=20)
+ax7.legend(fontsize=13)
+ax7.set_title('Velocidades en el tiempo en y', fontsize=20)
+ax7.set_xlabel('Velocidad', fontsize=20)
+ax7.set_ylabel('Frecuencia', fontsize=20)
+ax4.legend(fontsize=13)
+ax4.set_title('Presión en el tiempo', fontsize=20)
+ax4.set_xlabel('Iteraciones', fontsize=20)
+ax4.set_ylabel('Presión', fontsize=20)
 
 
 # Mostrar el gráfico

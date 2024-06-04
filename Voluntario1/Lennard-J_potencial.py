@@ -9,13 +9,13 @@ from numba import jit
 t0 = time.time()
 
 #Número de simulaciones.
-simulaciones = 4
+simulaciones = 1
 
 #Establecemos los uncrementos del tiempo.
 h = 0.002
 
 #Número de iteraciones.
-iteraciones = 80000
+iteraciones = 50000
 
 #Número de iteraciones que se saltan para guardar los datos.
 skip = 1
@@ -24,21 +24,21 @@ skip = 1
 sigma = 3.4
 
 #Pedimos el número de partículas.
-n = 16
+n = 80
 #Tamaño de caja
-l = 4
+l = 11
 
 #Interespaciado entre las partículas.
 s = 1
 
 #Variable para saber si las partículas se encuentran en un panal.
-panal = False
+panal = True
 
 #Reescalamiento de velocidades en tiempos específicos.
-REESCALAMIENTO = True
+REESCALAMIENTO = False
 
 #Temperatura crítica.
-Temperatura_critica = True
+Temperatura_critica = False
 
 if Temperatura_critica == True:
     REESCALAMIENTO = False
@@ -326,7 +326,8 @@ for z in range(simulaciones):
     #Aumentamos la velocidad de las partículas según la simulación
     velocidades = np.array(velocidades) * z
     if velocidad_en_x == True:
-        velocidades[:, 0] = 1
+        for i in range(n):
+            velocidades[:, 0] = np.random.rand()
         velocidades[:, 1] = 0
         
     posiciones = posiciones_iniciales(n, l, s, panal)
