@@ -42,7 +42,7 @@ if Temperatura_critica == True:
 velocidad_en_x = False
 
 #Disposición inicial de las partículas
-#@jit(nopython=True, fastmath=True)
+@jit(nopython=True, fastmath=True)
 def posiciones_iniciales(n, l, s, panal):
     posicion = np.zeros((n, 2)) + 1
     #Comprobamos si las partículas se encuentran en un panal.
@@ -162,7 +162,7 @@ def p_th(n, posiciones, w_i, h):
     return posiciones
 
 #Definimos la función que nos da la nueva velocidad en el tiempo t+h.
-#@jit(nopython=True, fastmath=True)
+@jit(nopython=True, fastmath=True)
 def velocidad_th(w_i, n, velocidades, a_i_th, h):
     E_c = 0
     for i in range(n):
@@ -171,13 +171,13 @@ def velocidad_th(w_i, n, velocidades, a_i_th, h):
     return velocidades, E_c
 
 #Definimos la energía cinética.
-#@jit(nopython=True, fastmath=True)
+@jit(nopython=True, fastmath=True)
 def energia_cinetica(velocidades):
     energia_cinetica = (0.5)*(velocidades[0]**2 + velocidades[1]**2)
     return energia_cinetica
 
 #Definimos la energía cinética de cada partícula.
-#@jit(nopython=True, fastmath=True)
+@jit(nopython=True, fastmath=True)
 def energia_cinetica_inicial(velocidades, n):
     E_c = 0
     for i in range(n):
