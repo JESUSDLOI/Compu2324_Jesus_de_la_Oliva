@@ -5,17 +5,14 @@ import numpy as np
 import time
 from numba import jit
 
-#Establecemos el tiempo inicial.
-t0 = time.time()
-
 #Número de simulaciones.
-simulaciones = 2
+simulaciones = 10
 
 #Establecemos los uncrementos del tiempo.
 h = 0.002
 
 #Número de iteraciones.
-iteraciones = 80000
+iteraciones = 100000
 
 #Número de iteraciones que se saltan para guardar los datos.
 skip = 1
@@ -24,21 +21,20 @@ skip = 1
 sigma = 3.4
 
 #Pedimos el número de partículas.
-n = 15
+n = 10
 #Tamaño de caja
-l = 6
+l = 20
 
 #Interespaciado entre las partículas.
-s = 1.5
+s = 1
 
 #Variable para saber si las partículas se encuentran en un panal.
 panal = False
 
 #Reescalamiento de velocidades en tiempos específicos.
-REESCALAMIENTO = True
-
+REESCALAMIENTO = False
 #Temperatura crítica.
-Temperatura_critica = True
+Temperatura_critica = False
 
 if Temperatura_critica == True:
     REESCALAMIENTO = False
@@ -46,7 +42,7 @@ if Temperatura_critica == True:
 velocidad_en_x = False
 
 #Disposición inicial de las partículas
-@jit(nopython=True, fastmath=True)
+#@jit(nopython=True, fastmath=True)
 def posiciones_iniciales(n, l, s, panal):
     posicion = np.zeros((n, 2)) + 1
     #Comprobamos si las partículas se encuentran en un panal.
@@ -166,7 +162,7 @@ def p_th(n, posiciones, w_i, h):
     return posiciones
 
 #Definimos la función que nos da la nueva velocidad en el tiempo t+h.
-@jit(nopython=True, fastmath=True)
+#@jit(nopython=True, fastmath=True)
 def velocidad_th(w_i, n, velocidades, a_i_th, h):
     E_c = 0
     for i in range(n):
@@ -175,13 +171,13 @@ def velocidad_th(w_i, n, velocidades, a_i_th, h):
     return velocidades, E_c
 
 #Definimos la energía cinética.
-@jit(nopython=True, fastmath=True)
+#@jit(nopython=True, fastmath=True)
 def energia_cinetica(velocidades):
     energia_cinetica = (0.5)*(velocidades[0]**2 + velocidades[1]**2)
     return energia_cinetica
 
 #Definimos la energía cinética de cada partícula.
-@jit(nopython=True, fastmath=True)
+#@jit(nopython=True, fastmath=True)
 def energia_cinetica_inicial(velocidades, n):
     E_c = 0
     for i in range(n):
@@ -217,21 +213,19 @@ def reescalamiento(velocidades, k, h, posiciones, posicion_inicial, fluctuacion_
         q = 0
     return velocidades, q
 
-def T_critica(velocidades, k, h, posiciones, fluctuacion_total, q, fluctuacion):
+def T_critica(velocidades, k, h, posiciones, fluctuacion_total, q, fluctuacion, fluctuaciones):
+    
     fluctuacion, resta = distancia_condiciones(posiciones, 0, 1, l)
     fluctuacion = fluctuacion**2
     file_temperatura_critica.write(str(fluctuacion) + "\n")
-    fluctuacion_total += fluctuacion
-    q += 1
+    fluctuaciones.append(fluctuacion)
     vector = np.arange(1, 80000, 6000)
     if k in vector:
         velocidades = velocidades * 1.1
-        fluctuacion_total = fluctuacion_total / q
+        fluctuacion_total = np.mean(fluctuaciones)
         print("Fluctuación total para T crítica: ", fluctuacion_total)
         file_temperatura_critica.write(str("\n"))
-        fluctuacion_total = 0
-        q = 0
-    return velocidades, q
+    return velocidades
 
 
 # Realizamos el bucle para calcular los datos de la simulación.
@@ -246,9 +240,11 @@ def simulacion(n, posiciones, velocidades, a_i, w_i, h, iteraciones, l, E_p, E_c
     q = 0
     fluctuacion = 0
     k = 0
+    
     guardar_datos(k, posiciones, energia, skip, E_c, E_p, velocidades, presion)
     for k in range(iteraciones):
         
+        fluctuaciones = []
         #Realizamos el algoritmo de Verlet.
         w_i = w_ih(n, velocidades, a_i, w_i, h)
         posiciones = p_th(n, posiciones, w_i, h)
@@ -278,7 +274,7 @@ def simulacion(n, posiciones, velocidades, a_i, w_i, h, iteraciones, l, E_p, E_c
         
         #Calculamos la temperatura crítica.
         if Temperatura_critica == True:
-            velocidades, q = T_critica(velocidades, k, h, posiciones, fluctuacion_total, q, fluctuacion)
+            velocidades = T_critica(velocidades, k, h, posiciones, fluctuacion_total, q, fluctuacion, fluctuaciones)
             
         guardar_datos(k, posiciones, energia, skip, E_c, E_p, velocidades, presion)
         
@@ -301,9 +297,12 @@ def simulacion(n, posiciones, velocidades, a_i, w_i, h, iteraciones, l, E_p, E_c
     
     
 file_presion_temp = open('presion_temp.dat', "w")  
+file_part_tiem = open('part_tiempo_no_numba.dat', "w")
     
 #Bucle para realizar las simulaciones.
 for z in range(simulaciones):   
+    #Establecemos el tiempo inicial.
+    t0 = time.time()
     
     # Abrir tres archivos para guardar los datos de las posiciones, velocidades y energía.
     file_posiciones = open('posiciones_part' + str(z) + '.dat', "w")
@@ -359,13 +358,20 @@ for z in range(simulaciones):
         file_fluctuacion.close()
     if Temperatura_critica == True:
         file_temperatura_critica.close()
+
+    #Tiempo final.
+    t1 = time.time()
+
+    tiempo = t1 - t0
+    file_part_tiem.write(str(n) + "," + str(tiempo) + "\n")
+    print("Número de partículas: ", n)
+    print("El tiempo de ejecución es: ", tiempo, "segundos")
+    n += 5
+    
     
 file_presion_temp.close()
+file_part_tiem.close()
 
 
-#Tiempo final.
-t1 = time.time()
 
-tiempo = t1 - t0
 
-print("El tiempo de ejecución es: ", tiempo, "segundos")
