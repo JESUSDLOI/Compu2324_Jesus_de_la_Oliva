@@ -12,8 +12,8 @@ part1 = data1[:,0]
 tiempo1 = data1[:,1]
 
 plt.figure(figsize=(10, 6))  # Crea una nueva figura con un tamaño específico
-plt.plot(part, tiempo, 'o-', label='Simulaciones Numba')  # Grafica 'part' en el eje x y 'tiempo' en el eje y
-plt.plot(part1, tiempo1, 'o-', label='Simulaciones sin Numba')
+plt.plot(part, tiempo, 'o-', label='Simulaciones ordenador personal')  # Grafica 'part' en el eje x y 'tiempo' en el eje y
+plt.plot(part1, tiempo1, 'o-', label='Simulaciones Joel')
 plt.xlabel('Partículas', fontsize=20)  # Etiqueta del eje x
 plt.ylabel('Tiempo', fontsize=20)  # Etiqueta del eje y
 plt.title('Gráfica de Part vs Tiempo', fontsize=30)  # Título de la gráfica

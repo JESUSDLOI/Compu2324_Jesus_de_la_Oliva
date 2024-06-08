@@ -297,7 +297,7 @@ def simulacion(n, posiciones, velocidades, a_i, w_i, h, iteraciones, l, E_p, E_c
     
     
 file_presion_temp = open('presion_temp.dat', "w")  
-file_part_tiem = open('part_tiempo_no_numba.dat', "w")
+file_part_tiem = open('part_tiempo.dat', "w")
     
 #Bucle para realizar las simulaciones.
 for z in range(simulaciones):   
