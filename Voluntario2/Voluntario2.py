@@ -9,19 +9,19 @@ import time
 #ININICIAR VARIABLES
 
 #Lado de la malla
-lado_malla = np.linspace(20, 120, 5).astype(np.int8)
+lado_malla = np.linspace(20, 20, 10).astype(np.int8)
 
 #Temperatura
-temperaturas = np.linspace(1, 1, 5).astype(np.float32)
+temperaturas = np.linspace(0.5, 5, 10).astype(np.float32)
 
 #Número de pasos_monte
-pasos_monte = np.full(5, 40000).astype(np.int32)
+pasos_monte = np.full(10, 40000).astype(np.int32)
 
 #Calcular magnetización y energía
 calcular_mag_ener = True
 
 #Magnetización inicial
-magnetizacion_inicial = 0
+magnetizacion_inicial = 1
 # ================================================================================
 
 
