@@ -9,10 +9,10 @@ import time
 #ININICIAR VARIABLES
 
 #Lado de la malla
-lado_malla = np.linspace(10, 10, 5).astype(np.int8)
+lado_malla = np.linspace(20, 120, 5).astype(np.int8)
 
 #Temperatura
-temperaturas = np.linspace(1, 3, 5).astype(np.float32)
+temperaturas = np.linspace(1, 1, 5).astype(np.float32)
 
 #Número de pasos_monte
 pasos_monte = np.full(5, 40000).astype(np.int32)
